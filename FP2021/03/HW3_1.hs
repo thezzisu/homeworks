@@ -23,6 +23,7 @@ and3 a b = if a then b else a
 -- Problem #2: 给出函数 div 的一种或多种定义
 div1 :: Integer -> Integer -> Integer
 div1 x y
+  | y == 0 = undefined
   | y < 0 = -div1 x (-y)
   | x < 0 = -div1 (-x) y
   | x < y = 0
@@ -30,6 +31,7 @@ div1 x y
 
 div2 :: Integer -> Integer -> Integer
 div2 x y
+  | y == 0 = undefined
   | y < 0 = -div2 x (-y)
   | x < 0 = -div2 (-x) y
   | otherwise = fst (last (takeWhile (\(a, b) -> b <= x) (map (\a -> (a, a * y)) [0 ..])))
@@ -40,11 +42,11 @@ div2 x y
 factGuard :: Integer -> Integer
 factGuard x
   | x == 0 = 1
-  | otherwise = x * frac1 (x - 1)
+  | otherwise = x * factGuard (x - 1)
 -- End Part #1
 
 -- Part #2: 使用分支表达式
 factBranch :: Integer -> Integer
-factBranch x = if x == 0 then 1 else x * frac1 (x - 1)
+factBranch x = if x == 0 then 1 else x * factBranch (x - 1)
 -- End Part #2
 -- End Problem #3
