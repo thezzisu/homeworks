@@ -1,13 +1,12 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
 -- 猜数字小游戏
 module Main where
 
-foreign import ccall "rand" rand :: IO Int
+import System.Random
 
 generateX :: IO Int
 generateX = do
-  rnd <- rand
-  return ((rnd `mod` 100) + 1)
+  x <- randomRIO (1, 10)
+  return x
 
 while :: IO Bool -> IO () -> IO ()
 while cond action = do

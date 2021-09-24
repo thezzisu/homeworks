@@ -24,9 +24,8 @@ and3 a b = if a then b else a
 div1 :: Integer -> Integer -> Integer
 div1 x y
   | y == 0 = undefined
-  | y < 0 = -div1 x (-y)
-  | x < 0 = -div1 (-x) y
-  | x < y = 0
+  | x < 0 && y < 0 = div1 (-x) (-y)
+  | x < 0 || y < 0 = div2 x y
   | otherwise = 1 + div (x - y) y
 
 div2 :: Integer -> Integer -> Integer
@@ -34,7 +33,7 @@ div2 x y
   | y == 0 = undefined
   | y < 0 = -div2 x (-y)
   | x < 0 = -div2 (-x) y
-  | otherwise = fst (last (takeWhile (\(a, b) -> b <= x) (map (\a -> (a, a * y)) [0 ..])))
+  | otherwise = last (takeWhile (\a -> a * y < x + y) [0 ..])
 -- End Problem #2
 
 -- Problem #3: 写出阶乘函数的其他定义：
