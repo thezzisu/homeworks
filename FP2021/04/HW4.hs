@@ -37,6 +37,7 @@ twice :: (a -> a) -> a -> a
 twice f x = f (f x)
 -- End Problem #2
 
+-- Notice: I'll use < for stdin and > for stdout.
 -- Problem #3: Int/Integer，show/read
 -- Part #1: Int/Integer的区别
 -- < a = 1 :: Int
@@ -70,16 +71,52 @@ twice f x = f (f x)
 
 -- Problem #4: Integral/Fractional
 -- Part #1: Integral
---   请把你的答案填写在这里（可以考虑直接复制命令行窗口的内容）
--- 示例：
---   Prelude> 你输入的表达式
---   GHCi返回的结果
+--   < :type quot
+--   > quot :: Integral a => a -> a -> a
+--   < quot (-5) 3
+--   > -1
+--   < :type rem
+--   > rem :: Integral a => a -> a -> a
+--   < rem (-5) 3
+--   > -2
+--   < :type quotRem
+--   > quotRem :: Integral a => a -> a -> (a, a)
+--   < quotRem (-5) 3
+--   > (-1,-2)
+--   < :type div
+--   > div :: Integral a => a -> a -> a
+--   < div (-5) 3
+--   > -2
+--   < :type mod
+--   > mod :: Integral a => a -> a -> a
+--   < mod (-5) 3
+--   > 1
+--   < :type divMod
+--   > divMod :: Integral a => a -> a -> (a, a)
+--   < divMod (-5) 3
+--   > (-2,1)
+--   < :type toInteger
+--   > toInteger :: Integral a => a -> Integer
+--   < toInteger 1
+--   > 1
+--   < :type toInteger 1
+--   > toInteger 1 :: Integer
 -- End Part #1
 
 -- Part #2: Fractional
---   请把你的答案填写在这里（可以考虑直接复制命令行窗口的内容）
--- 示例：
---   Prelude> 你输入的表达式
---   GHCi返回的结果
+--   < :type (/)
+--   > (/) :: Fractional a => a -> a -> a
+--   < (/) 2.0 0.5
+--   > 4.0
+--   < :type recip
+--   > recip :: Fractional a => a -> a
+--   < recip 2.0
+--   > 0.5
+--   < :type fromRational
+--   > fromRational :: Fractional a => Rational -> a
+--   < fromRational (1.0 :: Rational)
+--   > 1.0
+--   < :type fromRational (1.0 :: Rational)
+--   > fromRational (1.0 :: Rational) :: Fractional a => a
 -- End Part #2
 -- End Problem #3
