@@ -1,4 +1,5 @@
 module HW5 where
+import Data.Char
 
 -- Problem #1: define safetail
 -- Part #1: use a conditional expression
@@ -30,13 +31,31 @@ luhn a b c d = w `mod` 10 == 0
 -- End Problem #2
 
 -- Problem #3: Caesar crack
--- crack :: String -> String
--- crack xs = encode (-factor) xs
---   where factor = position (minimum chitab) chitab
---         chitab = [chisqr (rotate n table') table | n <- [0..25]]
---         table' = freqs xs
---         freqs = _
---         chisqr = _
+isChar :: Char -> Bool
+isChar c = ord c >= ord 'a' && ord c <= ord 'z'
+charToInt :: Char -> Int
+charToInt c = ord c - ord 'a'
+intToChar :: Int -> Char
+intToChar n = chr (ord 'a' + n)
+
+encode :: Int -> [Char] -> [Char]
+encode n xs = [ if isChar x then shift n x else x | x <- xs ]
+shift :: Int -> Char -> Char
+shift n c = intToChar ((charToInt c + n) `mod` 26)
+table :: [Float]
+table = [8.1, 1.5, 2.8, 4.2, 12.7, 2.2, 2.0, 6.1, 7.0, 0.2, 0.8, 4.0, 2.4, 6.7, 7.5, 1.9, 0.1, 6.0, 6.3, 9.0, 2.8, 1.0, 2.4, 0.2, 2.0, 0.1]
+
+crack :: String -> String
+crack xs = encode (-factor) xs
+  where factor = position (minimum chitab) chitab
+        chitab = [chisqr (rotate n freqs) table | n <- [0..25]]
+        rotate n arr = drop n arr ++ take n arr
+        freqs = map (\x -> charCount x / xsCount) [0..25]
+        charCount c = fromIntegral (length (filter (\y -> charToInt y == c) xs)) :: Float
+        xsCount = fromIntegral (length (filter isChar xs)) :: Float
+        chisqr a b = sum (zipWith (\x y -> (x - y) * (x - y) / y) a b)
+        position a arr = head (positions a arr)
+        positions a arr = map snd $ filter (\(x, y) -> x == a) (zip arr [0..25])
 -- End Problem #3
 
 -- Problem #4: Pythagorean triples
