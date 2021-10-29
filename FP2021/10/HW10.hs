@@ -46,8 +46,8 @@ instance Monad Expr where
 -- End Problem #2
 
 -- Problem #3: Why does factorising the expression grammar make the resulting parser more efficient?
--- Develop-efficient: Decoupling different parsing strategies into sperated functions, which reduces code complexity.
--- Time-efficient   : Using a greedy prefix-matching algorithm, build a AST only cost a liner time complexity.
+-- 1. Naturally handle operation priority;
+-- 2. Ensure the parsing to be a finite recursion.
 -- End Problem #3
 
 -- Problem #4: Extend the expression parser
@@ -106,12 +106,16 @@ sat checker = do
 parseExact :: Char -> Parser Char
 parseExact c = sat (c ==)
 
+parseAdd :: Parser Char
 parseAdd = parseExact '+'
 
+parseMns :: Parser Char
 parseMns = parseExact '-'
 
+parseMul :: Parser Char
 parseMul = parseExact '*'
 
+parseDiv :: Parser Char
 parseDiv = parseExact '/'
 
 parseExpr :: Parser Int
