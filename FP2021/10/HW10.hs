@@ -1,7 +1,7 @@
 module HW10 where
 
 import Control.Applicative (Alternative, empty, (<|>))
-import Data.Char (isDigit, isLower)
+import Data.Char (isNumber, ord)
 
 -- Problem #1: Reader Monad
 -- 因为 ((->) a) 在标准库中已经实现了 Monad，所以我们使用下面这个新定义的类型代替
@@ -11,7 +11,7 @@ instance Functor (Reader a) where
   fmap f (Reader g) = Reader {runReader = f . g}
 
 instance Applicative (Reader a) where
-  pure f = Reader {runReader = \x -> f}
+  pure f = Reader {runReader = const f}
   (<*>) (Reader f) (Reader g) = Reader {runReader = \a -> let h = f a; b = g a in h b}
 
 instance Monad (Reader a) where
@@ -79,7 +79,7 @@ instance Monad Parser where
       )
 
 instance Alternative Parser where
-  empty = P (\input -> [])
+  empty = P (const [])
   (<|>) p q =
     P
       ( \inp -> case parse p inp of
@@ -87,6 +87,7 @@ instance Alternative Parser where
           x -> x
       )
 
+item :: Parser Char
 item =
   P
     ( \input ->
@@ -95,19 +96,69 @@ item =
           (x : xs) -> [(x, xs)]
     )
 
+sat :: (Char -> Bool) -> Parser Char
 sat checker = do
   x <- item
   if checker x
     then return x
     else empty
 
-parseDigit = sat isDigit
-parseLower = sat isLower
+parseExact :: Char -> Parser Char
+parseExact c = sat (c ==)
+
+parseAdd = parseExact '+'
+
+parseMns = parseExact '-'
+
+parseMul = parseExact '*'
+
+parseDiv = parseExact '/'
+
+parseExpr :: Parser Int
+parseExpr =
+  parseTerm >>= \t ->
+    do
+      parseAdd
+      e <- parseExpr
+      return (t + e)
+      <|> do
+        parseMns
+        e <- parseExpr
+        return (t - e)
+      <|> return t
+
+parseTerm :: Parser Int
+parseTerm =
+  parseFactor >>= \f ->
+    do
+      parseMul
+      t <- parseTerm
+      return (f * t)
+      <|> do
+        parseDiv
+        t <- parseTerm
+        return (f `div` t)
+      <|> return f
+
+parseFactor :: Parser Int
+parseFactor =
+  do
+    do
+      parseExact '('
+      e <- parseExpr
+      parseExact ')'
+      return e
+    <|> parseDigit
+
+parseDigit :: Parser Int
+parseDigit = do
+  d <- sat isNumber
+  return (ord d - ord '0')
 
 eval :: String -> Int
 eval = fst . head . parse expr
 
 expr :: Parser Int
-expr = _
+expr = parseExpr
 
 -- End Problem #4
