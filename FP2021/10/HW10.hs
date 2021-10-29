@@ -119,30 +119,30 @@ parseDiv :: Parser Char
 parseDiv = parseExact '/'
 
 parseExpr :: Parser Int
-parseExpr =
-  parseTerm >>= \t ->
-    do
-      parseAdd
+parseExpr = do
+  t <- parseTerm
+  do
+    parseAdd
+    e <- parseExpr
+    return (t + e)
+    <|> do
+      parseMns
       e <- parseExpr
-      return (t + e)
-      <|> do
-        parseMns
-        e <- parseExpr
-        return (t - e)
-      <|> return t
+      return (t - e)
+    <|> return t
 
 parseTerm :: Parser Int
-parseTerm =
-  parseFactor >>= \f ->
-    do
-      parseMul
+parseTerm = do
+  f <- parseFactor
+  do
+    parseMul
+    t <- parseTerm
+    return (f * t)
+    <|> do
+      parseDiv
       t <- parseTerm
-      return (f * t)
-      <|> do
-        parseDiv
-        t <- parseTerm
-        return (f `div` t)
-      <|> return f
+      return (f `div` t)
+    <|> return f
 
 parseFactor :: Parser Int
 parseFactor =
