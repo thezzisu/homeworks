@@ -1,7 +1,7 @@
 module HW10 where
 
-import Control.Applicative (Alternative, empty, (<|>))
-import Data.Char (isNumber, ord)
+import Control.Applicative (Alternative, empty, some, (<|>))
+import Data.Char (isDigit, isNumber, ord)
 
 -- Problem #1: Reader Monad
 -- 因为 ((->) a) 在标准库中已经实现了 Monad，所以我们使用下面这个新定义的类型代替
@@ -152,12 +152,17 @@ parseFactor =
       e <- parseExpr
       parseExact ')'
       return e
-    <|> parseDigit
+    <|> parseNat
 
 parseDigit :: Parser Int
 parseDigit = do
   d <- sat isNumber
   return (ord d - ord '0')
+
+parseNat :: Parser Int
+parseNat = do
+  xs <- some (sat isDigit)
+  return (read xs)
 
 eval :: String -> Int
 eval = fst . head . parse expr
