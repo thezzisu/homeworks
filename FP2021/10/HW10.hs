@@ -118,40 +118,53 @@ parseMul = parseExact '*'
 parseDiv :: Parser Char
 parseDiv = parseExact '/'
 
+parseExpr' :: Parser (Int -> Int)
+parseExpr' =
+  do
+    parseAdd
+    t <- parseTerm
+    e' <- parseExpr'
+    return (\x -> e' $ x + t)
+    <|> do
+      parseMns
+      t <- parseTerm
+      e' <- parseExpr'
+      return (\x -> e' $ x - t)
+    <|> return id
+
 parseExpr :: Parser Int
 parseExpr = do
   t <- parseTerm
+  e' <- parseExpr'
+  return $ e' t
+
+parseTerm' :: Parser (Int -> Int)
+parseTerm' =
   do
-    parseAdd
-    e <- parseExpr
-    return (t + e)
+    parseMul
+    f <- parseFactor
+    t' <- parseTerm'
+    return (\x -> t' $ x * f)
     <|> do
-      parseMns
-      e <- parseExpr
-      return (t - e)
-    <|> return t
+      parseDiv
+      f <- parseFactor
+      t' <- parseTerm'
+      return (\x -> t' $ x `div` f)
+    <|> return id
 
 parseTerm :: Parser Int
 parseTerm = do
   f <- parseFactor
-  do
-    parseMul
-    t <- parseTerm
-    return (f * t)
-    <|> do
-      parseDiv
-      t <- parseTerm
-      return (f `div` t)
-    <|> return f
+  t' <- parseTerm'
+  return $ t' f
 
 parseFactor :: Parser Int
 parseFactor =
   do
-    do
-      parseExact '('
-      e <- parseExpr
-      parseExact ')'
-      return e
+    parseExact '('
+    e <- parseExpr
+    parseExact ')'
+    return e
     <|> parseNat
 
 parseDigit :: Parser Int
