@@ -41,14 +41,16 @@ module problem-2 where
       -----------------------------
     → foldr _⊗_ e (xs ++ ys)
     ≡ foldr _⊗_ (foldr _⊗_ e ys) xs
-  foldr-++ _⊗_ e [] ys = begin
+  foldr-++ _⊗_ e [] ys =
+    begin
       foldr _⊗_ e ([] ++ ys)
     ≡⟨⟩
       foldr _⊗_ e ys
     ≡⟨⟩
       foldr _⊗_ (foldr _⊗_ e ys) []
     ∎
-  foldr-++ _⊗_ e (x ∷ xs) ys = begin
+  foldr-++ _⊗_ e (x ∷ xs) ys =
+    begin
       foldr _⊗_ e ((x ∷ xs) ++ ys)
     ≡⟨⟩
       x ⊗ (foldr _⊗_ e (xs ++ ys))
@@ -118,26 +120,54 @@ module problem-3 (
     helper : ∀ {A : Set} → List A → List A → List A
     helper res []       = res
     helper res (x ∷ xs) = helper (x ∷ res) xs
-  
+
   fast-reverse≡reverse : ∀ {A : Set} → fast-reverse {A} ≡ reverse {A}
   fast-reverse≡reverse {A} = extensionality lemma
     where
+      shiᵗ : (xs ys : List A) → FastReverse.helper xs ys ≡ (reverse ys) ++ xs
+      shiᵗ xs [] = refl
+      shiᵗ xs (y ∷ ys) = begin
+          FastReverse.helper xs (y ∷ ys)
+        ≡⟨⟩
+          FastReverse.helper (y ∷ xs) ys
+        ≡⟨ shiᵗ (y ∷ xs) ys ⟩
+          (reverse ys) ++ (y ∷ xs)
+        ≡⟨ cong ((reverse ys) ++_) refl ⟩
+          (reverse ys) ++ ((y ∷ []) ++ xs)
+        ≡⟨ sym (problem-1.++-assoc (reverse ys) (y ∷ []) xs) ⟩
+          ((reverse ys) ++ (y ∷ [])) ++ xs
+        ≡⟨ cong (_++ xs) refl ⟩
+          (reverse (y ∷ ys)) ++ xs
+        ∎
+      
+      fucᵏ : (xs : List A) → xs ++ [] ≡ xs
+      fucᵏ [] = refl
+      fucᵏ (x ∷ xs) = cong (x ∷_) (fucᵏ xs)
+
       lemma : (xs : List A) → fast-reverse xs ≡ reverse xs
-      lemma xs = {!   !}
+      lemma xs = begin
+          fast-reverse xs
+        ≡⟨⟩
+          FastReverse.helper [] xs
+        ≡⟨ shiᵗ [] xs ⟩
+          (reverse xs) ++ []
+        ≡⟨ fucᵏ (reverse xs) ⟩
+          reverse xs
+        ∎
 
   fast-reverse-involutive : ∀ {A : Set}
     → fast-reverse {A} ∘ fast-reverse {A} ≡ id
   fast-reverse-involutive {A} = extensionality lemma
     where
       lemma : (xs : List A) → (fast-reverse ∘ fast-reverse) xs ≡ id xs
-      lemma = {!  
-        begin
+      lemma xs = begin
           (fast-reverse ∘ fast-reverse) xs
         ≡⟨⟩
-          fast-reverse (fast-reverse xs)
-        ≡⟨⟩
-          helper [] (helper [] xs)
-        ≡⟨⟩
-          xs
+         fast-reverse (fast-reverse xs)
+        ≡⟨ cong fast-reverse (cong-app fast-reverse≡reverse xs) ⟩
+          fast-reverse (reverse xs)
+        ≡⟨ cong-app fast-reverse≡reverse (reverse xs) ⟩
+          reverse (reverse xs)
+        ≡⟨ cong-app reverse-involutive xs ⟩
+          id xs
         ∎
-       !}
