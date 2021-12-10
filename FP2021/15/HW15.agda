@@ -78,16 +78,16 @@ module problem-3 (
   reverse-involutive : ∀ {A : Set} → reverse {A} ∘ reverse {A} ≡ id
   reverse-involutive {A} = extensionality lemma
     where
-      shiᵗ : (x : A) → (xs : List A) → reverse (xs ++ (x ∷ [])) ≡ x ∷ reverse xs
-      shiᵗ x [] = refl
-      shiᵗ x (x₁ ∷ xs) =
+      reverse-tail : (x : A) → (xs : List A) → reverse (xs ++ (x ∷ [])) ≡ x ∷ reverse xs
+      reverse-tail x [] = refl
+      reverse-tail x (x₁ ∷ xs) =
         begin
-          reverse ((x₁ ∷ xs) ++ (x ∷ []))
+          reverse ((x₁ ∷ xs) ++ (x ∷ []))
         ≡⟨⟩
-          reverse (x₁ ∷ (xs ++ (x ∷ [])))
+          reverse (x₁ ∷ (xs ++ (x ∷ [])))
         ≡⟨⟩
-          (reverse (xs ++ (x ∷ []))) ++ (x₁ ∷ [])
-        ≡⟨ cong (_++ (x₁ ∷ [])) (shiᵗ x xs) ⟩
+          (reverse (xs ++ (x ∷ []))) ++ (x₁ ∷ [])
+        ≡⟨ cong (_++ (x₁ ∷ [])) (reverse-tail x xs) ⟩
           (x ∷ reverse (xs)) ++ (x₁ ∷ [])
         ≡⟨⟩
           x ∷ (reverse (xs) ++ (x₁ ∷ []))
@@ -103,7 +103,7 @@ module problem-3 (
           reverse (reverse (x ∷ xs))
         ≡⟨⟩
           reverse ((reverse xs) ++ (x ∷ []))
-        ≡⟨ shiᵗ x (reverse xs) ⟩
+        ≡⟨ reverse-tail x (reverse xs) ⟩
           x ∷ reverse (reverse xs)
         ≡⟨⟩
           x ∷ ((reverse ∘ reverse) xs)
@@ -121,37 +121,36 @@ module problem-3 (
     helper res []       = res
     helper res (x ∷ xs) = helper (x ∷ res) xs
 
+  open FastReverse using (helper)
+  open problem-1 using (++-assoc; ++-identityʳ)
+
   fast-reverse≡reverse : ∀ {A : Set} → fast-reverse {A} ≡ reverse {A}
   fast-reverse≡reverse {A} = extensionality lemma
     where
-      shiᵗ : (xs ys : List A) → FastReverse.helper xs ys ≡ (reverse ys) ++ xs
-      shiᵗ xs [] = refl
-      shiᵗ xs (y ∷ ys) = begin
-          FastReverse.helper xs (y ∷ ys)
+      actual-helper : (xs ys : List A) → helper xs ys ≡ (reverse ys) ++ xs
+      actual-helper xs [] = refl
+      actual-helper xs (y ∷ ys) = begin
+          helper xs (y ∷ ys)
         ≡⟨⟩
-          FastReverse.helper (y ∷ xs) ys
-        ≡⟨ shiᵗ (y ∷ xs) ys ⟩
+          helper (y ∷ xs) ys
+        ≡⟨ actual-helper (y ∷ xs) ys ⟩
           (reverse ys) ++ (y ∷ xs)
         ≡⟨ cong ((reverse ys) ++_) refl ⟩
           (reverse ys) ++ ((y ∷ []) ++ xs)
-        ≡⟨ sym (problem-1.++-assoc (reverse ys) (y ∷ []) xs) ⟩
+        ≡⟨ sym (++-assoc (reverse ys) (y ∷ []) xs) ⟩
           ((reverse ys) ++ (y ∷ [])) ++ xs
         ≡⟨ cong (_++ xs) refl ⟩
           (reverse (y ∷ ys)) ++ xs
         ∎
-      
-      fucᵏ : (xs : List A) → xs ++ [] ≡ xs
-      fucᵏ [] = refl
-      fucᵏ (x ∷ xs) = cong (x ∷_) (fucᵏ xs)
 
       lemma : (xs : List A) → fast-reverse xs ≡ reverse xs
       lemma xs = begin
           fast-reverse xs
         ≡⟨⟩
-          FastReverse.helper [] xs
-        ≡⟨ shiᵗ [] xs ⟩
+          helper [] xs
+        ≡⟨ actual-helper [] xs ⟩
           (reverse xs) ++ []
-        ≡⟨ fucᵏ (reverse xs) ⟩
+        ≡⟨ ++-identityʳ (reverse xs) ⟩
           reverse xs
         ∎
 
