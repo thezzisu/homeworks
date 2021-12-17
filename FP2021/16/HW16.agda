@@ -186,6 +186,14 @@ module MSS (
           (flatten ∘ map (map f)) (xs ∷ xs₁)
         ∎
 
+  reduce-split : ∀{A : Set} (_⊕_ : A → A → A)(e : A)(p : IsMonoid e _⊕_)(xs ys : List A) → reduce _⊕_ e p (xs ++ ys) ≡ reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys
+  reduce-split _⊕_ e p [] ys = {!   !}
+  reduce-split _⊕_ e p (x ∷ xs) ys =
+    begin
+      reduce _⊕_ e p (x ∷ xs ++ ys)
+    ≡⟨ {!   !} ⟩
+      reduce _⊕_ e p (x ∷ xs) ⊕ reduce _⊕_ e p ys
+    ∎
 
   reduce-promotion : ∀{A : Set} (_⊕_ : A → A → A) (e : A)(p : IsMonoid e _⊕_) → reduce _⊕_ e p ∘ flatten ≡ reduce _⊕_ e p ∘ map (reduce _⊕_ e p)
   reduce-promotion = {!   !}
@@ -240,7 +248,7 @@ module MSS (
   sum-is-sum' : sum ≡ sum'
   sum-is-sum' = sum-is-reducable
 
-  ∘-assoc : ∀{ℓ ℓ' ℓ'' ℓ'''}{A : Set ℓ}{B : Set ℓ'}{C : Set ℓ''}{D : Set ℓ'''}(f : C → D)(g : B → C)(h : A → B) → (f ∘ g) ∘ h ≡ f ∘ (g ∘ h)
+  ∘-assoc : ∀{l l' l'' l'''}{A : Set l}{B : Set l'}{C : Set l''}{D : Set l'''}(f : C → D)(g : B → C)(h : A → B) → (f ∘ g) ∘ h ≡ f ∘ (g ∘ h)
   ∘-assoc f g h = refl
 
   R-Dist : ∀{A : Set} (_⊕_ : A → A → A)(_⊗_ : A → A → A) → Set
@@ -257,7 +265,6 @@ module MSS (
   ⊔-refl : (x : ℕ) → x ⊔ x ≡ x
   ⊔-refl zero = refl
   ⊔-refl (suc x) = cong suc (⊔-refl x)
-
   ⊔-only : (x y : ℕ) → (0 + x) ⊔ (y + x) ≡ y + x
   ⊔-only zero y = refl
   ⊔-only (suc x) y =
@@ -279,16 +286,6 @@ module MSS (
 
 
   R-Dist-⊔-+ : R-Dist _⊔_ _+_
-  -- R-Dist-⊔-+ a b 0 =
-  --   begin
-  --     (a ⊔ b) + 0
-  --   ≡⟨ +-identityʳ (a ⊔ b) ⟩
-  --     a ⊔ b
-  --   ≡⟨ cong (_⊔ b) (sym (+-identityʳ a)) ⟩
-  --     (a + 0) ⊔ b
-  --   ≡⟨ cong ((a + 0) ⊔_) (sym (+-identityʳ b)) ⟩
-  --     (a + 0) ⊔ (b + 0)
-  --   ∎
   R-Dist-⊔-+ zero zero c =
     begin
       (0 ⊔ 0) + c
@@ -350,7 +347,6 @@ module MSS (
   
   segs' : ∀ {A : Set} → List A → List (List A)
   segs' = flatten ∘ map tails ∘ inits
-
   segs-is-segs' : ∀ {A : Set} → segs {A} ≡ segs' {A}
   segs-is-segs' {A} = extensionality lemma
     where
