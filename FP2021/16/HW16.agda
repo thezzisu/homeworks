@@ -230,20 +230,62 @@ module MSS (
           reduce _⊕_ e p (map (reduce _⊕_ e p) (xs ∷ xs₁))
         ∎
 
+  foldl-last : ∀{A : Set}(_⊕_ : A → A → A)(e : A)(xs : List A)(x : A)
+    → foldl _⊕_ e xs ⊕ x ≡ foldl _⊕_ e (xs ++ [ x ])
+  foldl-last _⊕_ e [] x = refl
+  foldl-last _⊕_ e (x₁ ∷ xs) x =
+    begin
+      foldl _⊕_ (e ⊕ x₁) xs ⊕ x
+    ≡⟨ foldl-last _⊕_ (e ⊕ x₁) xs x ⟩
+      foldl _⊕_ (e ⊕ x₁) (xs ++ [ x ])
+    ∎
+
   acc-lemma : ∀{A : Set} (_⊕_ : A → A → A) (e : A) → scanl _⊕_ e ≡ map (foldl _⊕_ e) ∘ inits
-  acc-lemma {A} _⊕_ e = extensionality lemma
+  acc-lemma {A} _⊕_ e = extensionality (lemma e [] init-proof)
     where
-      lemma : (xs : List A) → scanl _⊕_ e xs ≡ (map (foldl _⊕_ e) ∘ inits) xs
-      lemma [] = refl
-      lemma (x ∷ xs) =
+      init-proof : e ≡ foldl _⊕_ e []
+      init-proof = refl
+
+      next-proof : (acc : A)(head : List A)(x : A)
+        → acc ≡ foldl _⊕_ e head
+        → acc ⊕ x ≡ foldl _⊕_ e (head ++ [ x ])
+      next-proof acc head x p =
         begin
-          scanl _⊕_ e (x ∷ xs)
+          acc ⊕ x
+        ≡⟨ cong (_⊕ x) p ⟩
+          foldl _⊕_ e head ⊕ x
+        ≡⟨ foldl-last _⊕_ e head x ⟩
+          foldl _⊕_ e (head ++ [ x ])
+        ∎
+
+      lemma : (acc : A)(head : List A)(p : acc ≡ foldl _⊕_ e head)
+        → (xs : List A)
+        → scanl _⊕_ acc xs ≡ (map (foldl _⊕_ e) ∘ (scanl _++_ head ∘ map [_])) xs
+      lemma acc head p [] =
+        begin
+          acc ∷ []
+        ≡⟨ cong (_∷ []) p ⟩
+          foldl _⊕_ e head ∷ []
         ≡⟨⟩
-          e ∷ scanl _⊕_ (e ⊕ x) xs
-        ≡⟨ {!   !} ⟩
-          map (foldl _⊕_ e) (inits (x ∷ xs))
+          map (foldl _⊕_ e) (head ∷ [])
         ≡⟨⟩
-          (map (foldl _⊕_ e) ∘ inits) (x ∷ xs)
+          map (foldl _⊕_ e) (scanl _++_ head [])
+        ≡⟨⟩
+          map (foldl _⊕_ e) (scanl _++_ head (map [_] []))
+        ∎
+      lemma acc head p (x ∷ xs) =
+        begin
+          acc ∷ scanl _⊕_ (acc ⊕ x) xs
+        ≡⟨ cong (acc ∷_) (lemma (acc ⊕ x) (head ++ [ x ]) (next-proof acc head x p) xs) ⟩
+          acc ∷ map (foldl _⊕_ e) (scanl _++_ (head ++ [ x ]) (map [_] xs))
+        ≡⟨ cong (_∷ map (foldl _⊕_ e) (scanl _++_ (head ++ [ x ]) (map [_] xs))) p ⟩
+          foldl _⊕_ e head ∷ map (foldl _⊕_ e) (scanl _++_ (head ++ [ x ]) (map [_] xs))
+        ≡⟨⟩
+          map (foldl _⊕_ e) (head ∷ scanl _++_ (head ++ [ x ]) (map [_] xs))
+        ≡⟨⟩
+          map (foldl _⊕_ e) (scanl _++_ head ([ x ] ∷ map [_] xs))
+        ≡⟨⟩
+          map (foldl _⊕_ e) (scanl _++_ head (map [_] (x ∷ xs)))
         ∎
 
   reduce-is-foldr : ∀{A : Set} → (_⊕_ : A → A → A) → (e : A) → (p : IsMonoid e _⊕_) → reduce _⊕_ e p ≡ foldr _⊕_ e
