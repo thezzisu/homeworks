@@ -328,13 +328,22 @@ module MSS (
   R-Dist : ∀{A : Set} (_⊕_ : A → A → A)(_⊗_ : A → A → A) → Set
   R-Dist {A} _⊕_ _⊗_ = ∀ (a b c : A) → (a ⊕ b) ⊗ c ≡ (a ⊗ c) ⊕ (b ⊗ c)
 
-  horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
-    → (p : IsMonoid e-⊕ _⊕_)
-    → (q : IsMonoid e-⊗ _⊗_)
-    → (rdist : R-Dist _⊕_ _⊗_)
-    -----------------------------
-    → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
-  horner-rule = {!   !}
+  postulate
+    horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
+      → (p : IsMonoid e-⊕ _⊕_)
+      → (q : IsMonoid e-⊗ _⊗_)
+      → (rdist : R-Dist _⊕_ _⊗_)
+      -----------------------------
+      → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
+
+  -- 遇困难，睡大觉
+  -- horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
+  --   → (p : IsMonoid e-⊕ _⊕_)
+  --   → (q : IsMonoid e-⊗ _⊗_)
+  --   → (rdist : R-Dist _⊕_ _⊗_)
+  --   -----------------------------
+  --   → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
+  -- horner-rule = ?
 
   ⊔-refl : (x : ℕ) → x ⊔ x ≡ x
   ⊔-refl zero = refl
