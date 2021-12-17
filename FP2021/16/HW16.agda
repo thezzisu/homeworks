@@ -187,16 +187,48 @@ module MSS (
         ∎
 
   reduce-split : ∀{A : Set} (_⊕_ : A → A → A)(e : A)(p : IsMonoid e _⊕_)(xs ys : List A) → reduce _⊕_ e p (xs ++ ys) ≡ reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys
-  reduce-split _⊕_ e p [] ys = {!   !}
+  reduce-split _⊕_ e p [] ys =
+    begin
+      reduce _⊕_ e p ([] ++ ys)
+    ≡⟨⟩
+      reduce _⊕_ e p ys
+    ≡⟨ sym (IsMonoid.identityˡ p (reduce _⊕_ e p ys)) ⟩
+      e ⊕ reduce _⊕_ e p ys
+    ∎
   reduce-split _⊕_ e p (x ∷ xs) ys =
     begin
       reduce _⊕_ e p (x ∷ xs ++ ys)
-    ≡⟨ {!   !} ⟩
+    ≡⟨⟩
+      x ⊕ reduce _⊕_ e p (xs ++ ys)
+    ≡⟨ cong (x ⊕_) (reduce-split _⊕_ e p xs ys) ⟩
+      x ⊕ (reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys)
+    ≡⟨ sym (IsMonoid.assoc p x (reduce _⊕_ e p xs) (reduce _⊕_ e p ys))  ⟩
+      (x ⊕ reduce _⊕_ e p xs) ⊕ reduce _⊕_ e p ys
+    ≡⟨⟩
       reduce _⊕_ e p (x ∷ xs) ⊕ reduce _⊕_ e p ys
     ∎
 
   reduce-promotion : ∀{A : Set} (_⊕_ : A → A → A) (e : A)(p : IsMonoid e _⊕_) → reduce _⊕_ e p ∘ flatten ≡ reduce _⊕_ e p ∘ map (reduce _⊕_ e p)
-  reduce-promotion = {!   !}
+  reduce-promotion {A} _⊕_ e p = extensionality lemma
+    where
+      lemma : (xs : List (List A)) → (reduce _⊕_ e p ∘ flatten) xs ≡ (reduce _⊕_ e p ∘ map (reduce _⊕_ e p)) xs
+      lemma [] = refl
+      lemma (xs ∷ xs₁) =
+        begin
+          (reduce _⊕_ e p ∘ flatten) (xs ∷ xs₁)
+        ≡⟨⟩
+          reduce _⊕_ e p (flatten (xs ∷ xs₁))
+        ≡⟨⟩
+          reduce _⊕_ e p (xs ++ flatten xs₁)
+        ≡⟨ reduce-split _⊕_ e p xs (flatten xs₁) ⟩
+          reduce _⊕_ e p xs ⊕ reduce _⊕_ e p (flatten xs₁)
+        ≡⟨ cong (reduce _⊕_ e p xs ⊕_) (lemma xs₁) ⟩
+          reduce _⊕_ e p xs ⊕ reduce _⊕_ e p (map (reduce _⊕_ e p) xs₁)
+        ≡⟨⟩
+          reduce _⊕_ e p (reduce _⊕_ e p xs ∷ map (reduce _⊕_ e p) xs₁)
+        ≡⟨⟩
+          reduce _⊕_ e p (map (reduce _⊕_ e p) (xs ∷ xs₁))
+        ∎
 
   acc-lemma : ∀{A : Set} (_⊕_ : A → A → A) (e : A) → scanl _⊕_ e ≡ map (foldl _⊕_ e) ∘ inits
   acc-lemma {A} _⊕_ e = extensionality lemma
