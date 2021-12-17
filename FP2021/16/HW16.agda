@@ -170,6 +170,42 @@ module MSS (
   mss-fast : List ℕ → ℕ
   mss-fast = maximum ∘ (scanl _⊙_ 0)
 
+  maximum-is-reducable : maximum ≡ reduce _⊔_ 0 ℕ-⊔-is-monoid
+  maximum-is-reducable = sym (reduce-is-foldr _⊔_ 0 ℕ-⊔-is-monoid)
+
+  concat-is-reducable : concat ≡ reduce _++_ [] List-++-is-monoid
+  concat-is-reducable = sym (reduce-is-foldr _++_ [] List-++-is-monoid)
+
+  concat-is-flatten : concat ≡ flatten
+  concat-is-flatten = concat-is-reducable
+
+  sum-is-reducable : sum ≡ reduce _+_ 0 ℕ-add-is-monoid
+  sum-is-reducable = sym (reduce-is-foldr _+_ 0 ℕ-add-is-monoid)
+
+  reduce-is-foldl : ∀{A : Set} → (_⊕_ : A → A → A) → (e : A) → (p : IsMonoid e _⊕_) → reduce _⊕_ e p ≡ foldl _⊕_ e
+  reduce-is-foldl {A} _⊕_ e p = extensionality lemma
+    where
+      lemma : (xs : List A) → reduce _⊕_ e p xs ≡ foldl _⊕_ e xs
+      lemma [] = refl
+      lemma (x ∷ xs) = {!   !}
+
+  ∘-assoc : ∀{ℓ ℓ' ℓ'' ℓ'''}{A : Set ℓ}{B : Set ℓ'}{C : Set ℓ''}{D : Set ℓ'''}(f : C → D)(g : B → C)(h : A → B) → (f ∘ g) ∘ h ≡ f ∘ (g ∘ h)
+  ∘-assoc f g h = refl
+
+  R-Dist : ∀{A : Set} (_⊕_ : A → A → A)(_⊗_ : A → A → A) → Set
+  R-Dist {A} _⊕_ _⊗_ = ∀ (a b c : A) → (a ⊕ b) ⊗ c ≡ (a ⊗ c) ⊕ (b ⊕ c)
+
+  horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
+    → (p : IsMonoid e-⊕ _⊕_)
+    → (q : IsMonoid e-⊗ _⊗_)
+    → (rdist : R-Dist _⊕_ _⊗_)
+    -----------------------------
+    → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
+  horner-rule = {!   !}
+
+  fuckful-rdist = R-Dist _⊔_ _+_
+  fuckful-rdist = ?
+
   derivation : mss ≡ mss-fast
   derivation = 
     begin
@@ -178,15 +214,15 @@ module MSS (
       maximum ∘ map sum ∘ segs
     ≡⟨⟩
       maximum ∘ map sum ∘ concat ∘ map tails ∘ inits
-    ≡⟨⟩
-      foldr _⊔_ 0 ∘ map (foldr _+_ 0) ∘ foldr _++_ [] ∘ map tails ∘ inits
-    -- ≡⟨ {!   !} ⟩
-    -- ≡⟨  ⟩
+    ≡⟨ {!   !} ⟩
+      maximum ∘ map sum ∘ flatten ∘ map tails ∘ inits
     -- ≡⟨  ⟩
     -- ≡⟨  ⟩
     ≡⟨ {!   !} ⟩
-      maximum ∘ map (maximum ∘ map (reduce _+_ 0 ℕ-add-is-monoid) ∘ tails) ∘ inits
-    ≡⟨ {!   !} ⟩
+      maximum ∘ map (reduce _⊔_ 0 ℕ-⊔-is-monoid ∘ map (reduce _+_ 0 ℕ-add-is-monoid) ∘ tails) ∘ inits
+    ≡⟨ cong (maximum ∘_) (cong (_∘ inits) ( {! horner-rule _⊔_ 0 _+_ 0 ℕ-⊔-is-monoid ℕ-add-is-monoid  !} )) ⟩
+    --   maximum ∘ map (reduce _⊙_ 0 ℕ-⊙-is-monoid) ∘ inits
+    -- ≡⟨ cong (maximum ∘_) (cong (_∘ inits) (cong map (reduce-is-foldl _⊙_ 0 ℕ-⊙-is-monoid))) ⟩
       maximum ∘ map (foldl _⊙_ 0) ∘ inits
     ≡⟨ cong (maximum ∘_) (sym (acc-lemma _⊙_ 0)) ⟩
       maximum ∘ (scanl _⊙_ 0)
@@ -197,7 +233,18 @@ module MSS (
   -- note: it is possible to avoid extensionality and instead prove the following
   --
   -- derivation-alt : ∀ xs → mss xs ≡ mss-fast xs
-  -- derivation-alt = ?
+  -- derivation-alt xs =
+  --   begin
+  --     mss xs
+  --   ≡⟨⟩
+  --     maximum (map sum (segs xs))
+  --   ≡⟨⟩
+  --     maximum (map sum (concat (map tails (inits xs))))
+  --   ≡⟨ cong (λ x → maximum (map sum x)) (cong-app concat-is-flatten (map tails (inits xs))) ⟩
+  --     maximum (map sum (flatten (map tails (inits xs))))
+  --   ≡⟨ {!   !} ⟩
+  --     mss-fast xs
+  --   ∎
   --
   -- in fact, this version should be slightly easier to write, since it (generally)
   -- produces better error messages. If you want to follow this route, go ahead and
