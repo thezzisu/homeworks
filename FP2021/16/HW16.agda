@@ -372,13 +372,10 @@ module MSS (
     → (tails (x ∷ xs)) ≡ (x ∷ xs) ∷ tails xs
   tails-first x xs = refl
 
-  -- tails : List A → List (List A)
-  -- tails []       = [] ∷ []
-  -- tails (x ∷ xs) = (x ∷ xs) ∷ tails xs
-
   tails-last : ∀{A : Set}(xs : List A)(x : A)
     → tails (xs ++ [ x ]) ≡ (map (_++ [ x ]) (tails xs)) ++ [ [] ]
-  tails-last xs x = {!   !}
+  tails-last [] x = refl
+  tails-last (x₁ ∷ xs) x = cong ((x₁ ∷ xs ++ [ x ]) ∷_) (tails-last xs x)
 
   open import Data.List.Properties using (++-assoc; ++-identityˡ; ++-identityʳ; foldl-++; map-++-commute)
 
