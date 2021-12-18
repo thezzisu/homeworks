@@ -39,11 +39,14 @@ module MSS (
       → f ≡ g
   ) where
 
-  open import Data.List using (List; []; _∷_; [_]; _++_; foldl; foldr; map; scanl; scanr; tails)
+  open import Data.List using (List; []; _∷_; [_]; _++_; foldl; foldr; map; scanl; scanr)
   open import Data.Nat using (ℕ; _+_; zero; suc; _⊔_)
 
   inits : ∀ {A : Set} → List A → List (List A)
   inits = scanl _++_ [] ∘ map [_]
+
+  tails : ∀ {A : Set} → List A → List (List A)
+  tails = scanr _++_ [] ∘ map [_]
 
   concat : ∀ {A : Set} → List (List A) → List A
   concat = foldr _++_ []
@@ -368,16 +371,56 @@ module MSS (
       (x₁ ⊕ reduce _⊕_ e-⊕ p (x₂ ∷ xs)) ⊗ x
     ∎
 
+  open import Data.List.Properties using (++-assoc; ++-identityˡ; ++-identityʳ; foldl-++; map-++-commute; ∷-injectiveˡ)
+
   tails-first : ∀{A : Set}(x : A)(xs : List A)
     → (tails (x ∷ xs)) ≡ (x ∷ xs) ∷ tails xs
-  tails-first x xs = refl
+  tails-first x [] = refl
+  tails-first x (x₁ ∷ xs)
+    with tails (x₁ ∷ xs) | tails-first x₁ xs
+  ... | []     | ()
+  ... | z ∷ zs | p =
+    begin
+      (x ∷ z) ∷ z ∷ zs
+    ≡⟨ cong (_∷ z ∷ zs) (cong (x ∷_) (∷-injectiveˡ p)) ⟩
+      (x ∷ x₁ ∷ xs) ∷ z ∷ zs
+    ∎
+  
+  tails' : ∀{A : Set} → List A → List (List A)
+  tails' []       = [] ∷ []
+  tails' (x ∷ xs) = (x ∷ xs) ∷ tails' xs
+
+  tails≡tails' : ∀{A : Set} → tails ≡ tails'
+  tails≡tails' {A} = extensionality lemma
+    where
+      lemma : (xs : List A) → tails xs ≡ tails' xs
+      lemma [] = refl
+      lemma (x ∷ xs) =
+        begin
+          tails (x ∷ xs)
+        ≡⟨ tails-first x xs ⟩
+          (x ∷ xs) ∷ tails xs
+        ≡⟨ cong ((x ∷ xs) ∷_) (lemma xs) ⟩
+          (x ∷ xs) ∷ tails' xs
+        ∎
+  
+  tails'-last : ∀{A : Set}(xs : List A)(x : A)
+    → tails' (xs ++ [ x ]) ≡ (map (_++ [ x ]) (tails' xs)) ++ [ [] ]
+  tails'-last [] x = refl
+  tails'-last (x₁ ∷ xs) x = cong ((x₁ ∷ xs ++ [ x ]) ∷_) (tails'-last xs x)
 
   tails-last : ∀{A : Set}(xs : List A)(x : A)
     → tails (xs ++ [ x ]) ≡ (map (_++ [ x ]) (tails xs)) ++ [ [] ]
-  tails-last [] x = refl
-  tails-last (x₁ ∷ xs) x = cong ((x₁ ∷ xs ++ [ x ]) ∷_) (tails-last xs x)
-
-  open import Data.List.Properties using (++-assoc; ++-identityˡ; ++-identityʳ; foldl-++; map-++-commute)
+  tails-last xs x =
+    begin
+      tails (xs ++ [ x ])
+    ≡⟨ cong-app tails≡tails' (xs ++ [ x ]) ⟩
+      tails' (xs ++ [ x ])
+    ≡⟨ tails'-last xs x ⟩
+      map (_++ [ x ]) (tails' xs) ++ [ [] ]
+    ≡⟨ cong (_++ [ [] ]) (cong (map (_++ [ x ])) (cong-app (sym tails≡tails') xs)) ⟩
+      map (_++ [ x ]) (tails xs) ++ [ [] ]
+    ∎
 
   horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
     → (p : IsMonoid e-⊕ _⊕_)
