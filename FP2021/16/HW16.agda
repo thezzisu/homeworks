@@ -328,22 +328,56 @@ module MSS (
   R-Dist : ∀{A : Set} (_⊕_ : A → A → A)(_⊗_ : A → A → A) → Set
   R-Dist {A} _⊕_ _⊗_ = ∀ (a b c : A) → (a ⊕ b) ⊗ c ≡ (a ⊗ c) ⊕ (b ⊗ c)
 
-  postulate
-    horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
-      → (p : IsMonoid e-⊕ _⊕_)
-      → (q : IsMonoid e-⊗ _⊗_)
-      → (rdist : R-Dist _⊕_ _⊗_)
-      -----------------------------
-      → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
+  open import Data.List.Properties using (++-assoc; ++-identityˡ; ++-identityʳ)
 
-  -- 遇困难，睡大觉
-  -- horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
-  --   → (p : IsMonoid e-⊕ _⊕_)
-  --   → (q : IsMonoid e-⊗ _⊗_)
-  --   → (rdist : R-Dist _⊕_ _⊗_)
-  --   -----------------------------
-  --   → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
-  -- horner-rule = ?
+  horner-rule : ∀{A : Set} (_⊕_ : A → A → A) (e-⊕ : A)(_⊗_ : A → A → A) (e-⊗ : A)
+    → (p : IsMonoid e-⊕ _⊕_)
+    → (q : IsMonoid e-⊗ _⊗_)
+    → (rdist : R-Dist _⊕_ _⊗_)
+    -----------------------------
+    → reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails ≡ foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗
+  horner-rule {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist = extensionality (λ xs → helper [] xs xs (++-identityˡ xs) init-proof)
+    where
+      init-proof : (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) [] ≡ (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) []
+      init-proof = {!   !}
+
+      next-proof : (xs : List A)(x : A)
+        → (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) xs ≡ (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) xs
+        → (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) (xs ++ [ x ]) ≡ (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) (xs ++ [ x ])
+      next-proof = {!   !}
+
+      ++-transform : (xs : List A)(y : A)(ys : List A)
+        → (xs ++ [ y ]) ++ ys ≡ xs ++ (y ∷ ys)
+      ++-transform [] y ys = refl
+      ++-transform (x ∷ xs) y ys =
+        begin
+          x ∷ (xs ++ [ y ]) ++ ys
+        ≡⟨⟩
+          x ∷ ((xs ++ [ y ]) ++ ys)
+        ≡⟨ cong (x ∷_) (++-transform xs y ys) ⟩
+          x ∷ (xs ++ (y ∷ ys))
+        ≡⟨⟩
+          (x ∷ xs) ++ (y ∷ ys)
+        ∎
+
+      helper : (left right all : List A)(s : left ++ right ≡ all)
+        → (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) left ≡ (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) left
+        → (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) all ≡ (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) all
+      helper left [] all s t =
+        begin
+          (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) all
+        ≡⟨ cong (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) (sym s) ⟩
+          (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) (left ++ [])
+        ≡⟨ cong (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) (++-identityʳ left) ⟩
+          (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) left
+        ≡⟨ t ⟩
+          (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) left
+        ≡⟨ cong (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) (sym (++-identityʳ left)) ⟩
+          (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) (left ++ [])
+        ≡⟨ cong (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) s ⟩
+          (foldl (λ a b → (a ⊗ b) ⊕ e-⊗ ) e-⊗) all
+        ∎
+      helper left (x ∷ right) all s t = helper (left ++ [ x ]) right all (trans (++-transform left x right) s) (next-proof left x t)
 
   ⊔-refl : (x : ℕ) → x ⊔ x ≡ x
   ⊔-refl zero = refl
