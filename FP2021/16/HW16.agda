@@ -763,26 +763,67 @@ module BMF2-1 where
   -- (3) falsity '⊥' is an empty data type, it has no constructors ...
   -- (4) ... which means we can pattern match with absurd pattern '()'
 
-  -- record IsHomomorphism
-  --   {A : Set} {a : A} {_⊕_ : A → A → A} (m₁ : IsMonoid a _⊕_)
-  --   {B : Set} {b : B} {_⊗_ : B → B → B} (m₂ : IsMonoid b _⊗_)
-  --   (f : A → B) : Set where
-  --   field
-  --     distrib : (x y : A) → f (x ⊕ y) ≡ f x ⊗ f y
+  record IsHomomorphism
+    {A : Set} {a : A} {_⊕_ : A → A → A} (m₁ : IsMonoid a _⊕_)
+    {B : Set} {b : B} {_⊗_ : B → B → B} (m₂ : IsMonoid b _⊗_)
+    (f : A → B) : Set where
+    field
+      distrib : (x y : A) → f (x ⊕ y) ≡ f x ⊗ f y
 
-  -- open IsHomomorphism
+  open IsHomomorphism
 
-  -- init-is-not-homomorphism :
-  --   ∀ {e : List ℕ} {_⊗_} (m : IsMonoid e _⊗_)
-  --   → ¬ IsHomomorphism List-++-is-monoid m init
-  -- init-is-not-homomorphism = {!   !}
+  open import Data.List.Properties using (++-identityʳ-unique; ++-assoc)
 
-  -- Proof in natural language:
-  -- If init is a homomorphism, we'll have:
-  --   init (xs ++ ys) === (init xs) ⊘ (init ys)
-  -- However, init (xs ++ ys) contains element `last xs`, which is in neither `init xs` nor `init ys`.
-  -- So, we cannot found a ⊘ which meets the above equation.
-  -- Thus, init is not a homomorphism.
+  zzs-lemma-0 : ∀ {e : List ℕ} → (1 ∷ e) ≢ []
+  zzs-lemma-0 ()
+
+  zzs-lemma-1 : ∀ {e : List ℕ} → ¬ e ++ (1 ∷ e) ≡ e
+  zzs-lemma-1 {e} p = zzs-lemma-0 (++-identityʳ-unique e (sym p))
+
+  init-lemma : (xs : List ℕ)(x : ℕ) → init (xs ++ [ x ]) ≡ xs
+  init-lemma [] x = refl
+  init-lemma (x₁ ∷ []) x = refl
+  init-lemma (x₁ ∷ x₂ ∷ xs) x =
+    begin
+      init ((x₁ ∷ x₂ ∷ xs) ++ [ x ])
+    ≡⟨⟩
+      init (x₁ ∷ ((x₂ ∷ xs) ++ [ x ]))
+    ≡⟨⟩
+      x₁ ∷ init ((x₂ ∷ xs) ++ [ x ])
+    ≡⟨ cong (x₁ ∷_) (init-lemma (x₂ ∷ xs) x) ⟩
+      x₁ ∷ x₂ ∷ xs
+    ∎
+  
+  init-lemma' : (xs : List ℕ) → init (xs ++ [ 1 ]) ≡ xs
+  init-lemma' xs = init-lemma xs 1
+
+  init-is-not-homomorphism-helper :
+    ∀ {e : List ℕ} {_⊗_} (m : IsMonoid e _⊗_)
+    → IsHomomorphism List-++-is-monoid m init
+    → e ++ (1 ∷ e) ≡ e
+  init-is-not-homomorphism-helper {e} {_⊗_} m p =
+    begin
+      e ++ (1 ∷ e)
+    ≡⟨ sym (init-lemma' (e ++ (1 ∷ e))) ⟩
+      init ((e ++ [ 1 ] ++ e) ++ [ 1 ])
+    ≡⟨ cong init (cong (_++ [ 1 ]) (sym (++-assoc e [ 1 ] e))) ⟩
+      init (((e ++ [ 1 ]) ++ e) ++ [ 1 ])
+    ≡⟨ cong init (++-assoc (e ++ [ 1 ]) e [ 1 ]) ⟩
+      init ((e ++ [ 1 ]) ++ (e ++ [ 1 ]))
+    ≡⟨ IsHomomorphism.distrib p (e ++ [ 1 ]) (e ++ [ 1 ])  ⟩
+      init (e ++ [ 1 ]) ⊗ init (e ++ [ 1 ])
+    ≡⟨ cong (_⊗ init (e ++ [ 1 ])) (init-lemma' e) ⟩
+      e ⊗ init (e ++ [ 1 ])
+    ≡⟨ cong (e ⊗_) (init-lemma' e) ⟩
+      e ⊗ e
+    ≡⟨ IsMonoid.identityʳ m e ⟩
+      e
+    ∎
+
+  init-is-not-homomorphism :
+    ∀ {e : List ℕ} {_⊗_} (m : IsMonoid e _⊗_)
+    → ¬ IsHomomorphism List-++-is-monoid m init
+  init-is-not-homomorphism m p = zzs-lemma-1 (init-is-not-homomorphism-helper m p)
 
   -- Hint: you might want to follow this guideline below if you get stuck.
   --
