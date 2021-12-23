@@ -736,12 +736,36 @@ module BMF2-1 where
   --   R-is-semigroup : ∀ {A : Set} → IsSemigroup {List A × A} _⊗_
   --   split-is-homomorphism : ∀ {A : Set} → IsHomomorphism NList-++′-is-semigroup R-is-semigroup (split {A})
   -- Alternatively, you may find it much more desirable (satisfactory) to prove the general case:
-  --   reduce-map-is-homomorphism : ∀ {A B : Set}
-  --     → (f : A → B)
-  --     → (_⊗_ : B → B → B)
-  --     → (B-⊗-is-semigroup : IsSemigroup _⊗_)
-  --       ---------------------------------------------------------------------------
-  --     → IsHomomorphism NList-++′-is-semigroup B-⊗-is-semigroup (reduce _⊗_ ∘ map f)
+  map-distrib : ∀ {A B : Set} → (f : A → B) → (xs ys : NList A)
+    → map f (xs ++′ ys) ≡ map f xs ++′ map f ys
+  map-distrib f [ x ]′ ys = refl
+  map-distrib f (x ∷′ xs) ys = cong (f x ∷′_) (map-distrib f xs ys)
+
+  reduce-distrib : ∀ {A : Set} → (_⊗_ : A → A → A)
+    → (s : IsSemigroup _⊗_)
+    → (xs ys : NList A)
+    → reduce _⊗_ (xs ++′ ys) ≡ reduce _⊗_ xs ⊗ reduce _⊗_ ys
+  reduce-distrib _⊗_ s [ x ]′ ys = refl
+  reduce-distrib _⊗_ s (x ∷′ xs) ys = trans (cong (x ⊗_) (reduce-distrib _⊗_ s xs ys)) (sym (IsSemigroup.assoc s x (reduce _⊗_ xs) (reduce _⊗_ ys)))
+
+  reduce-map-is-homomorphism : ∀ {A B : Set}
+    → (f : A → B)
+    → (_⊗_ : B → B → B)
+    → (B-⊗-is-semigroup : IsSemigroup _⊗_)
+      ---------------------------------------------------------------------------
+    → IsHomomorphism NList-++′-is-semigroup B-⊗-is-semigroup (reduce _⊗_ ∘ map f)
+  reduce-map-is-homomorphism f _⊗_ B-⊗-is-semigroup .distrib xs ys =
+    begin
+      (reduce _⊗_ ∘ map f) (xs ++′ ys)
+    ≡⟨⟩
+      reduce _⊗_ (map f (xs ++′ ys))
+    ≡⟨ cong (reduce _⊗_) (map-distrib f xs ys) ⟩
+      reduce _⊗_ (map f xs ++′ map f ys)
+    ≡⟨ reduce-distrib _⊗_ B-⊗-is-semigroup (map f xs) (map f ys) ⟩
+      reduce _⊗_ (map f xs) ⊗ reduce _⊗_ (map f ys)
+    ≡⟨⟩
+      (reduce _⊗_ ∘ map f) xs ⊗ (reduce _⊗_ ∘ map f) ys
+    ∎
 
   -- to verify your 'split' is correct. after defining 'split', proving the following
   -- should be as easy as filling in 'refl'.
