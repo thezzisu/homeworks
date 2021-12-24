@@ -11,11 +11,20 @@ lsp p xs = foldl f [] (scanl h [] xs)
 
     h = g p
 
-minimax :: [[Int]] -> Int
-minimax [] = undefined
-minimax (xs : []) = 
-minimax (xs : xss) = _
+minimax :: [[Int]] -> Int    
+minimax ((x : xs) : xss) = minimax' (max''' x xs) xss
   where
-    max' o [] = undefined
-    max' o (x : []) = x
-    max' o (x : xs) = if x >= 
+    minimax' :: Int -> [[Int]] -> Int
+    minimax' o [] = o
+    minimax' o (xs : xss) = minimax' (min o (max'' o xs)) xss
+
+    max' :: Int -> Int -> [Int] -> Int
+    max' o i [] = i
+    max' o i (x : xs) = if x >= o then o else max' o (max i x) xs
+
+    max'' :: Int -> [Int] -> Int
+    max'' o (x : xs) = if x >= o then o else max' o x xs
+
+    max''' :: Int -> [Int] -> Int
+    max''' i [] = i
+    max''' i (x : xs) = max''' (max i x) xs
