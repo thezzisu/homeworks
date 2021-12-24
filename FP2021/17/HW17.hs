@@ -12,4 +12,10 @@ lsp p xs = foldl f [] (scanl h [] xs)
     h = g p
 
 minimax :: [[Int]] -> Int
-minimax [] = _
+minimax [] = undefined
+minimax (xs : []) = 
+minimax (xs : xss) = _
+  where
+    max' o [] = undefined
+    max' o (x : []) = x
+    max' o (x : xs) = if x >= 
