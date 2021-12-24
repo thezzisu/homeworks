@@ -147,7 +147,7 @@ module MSS (
     ≡⟨ cong (f x ∷_) (map-flatten f xs ys) ⟩
       f x ∷ (map f xs ++ map f ys)
     ∎
-  
+
   map-distrib : ∀{A B C : Set} (f : B → C) (g : A → B) → map f ∘ map g ≡ map (f ∘ g)
   map-distrib {A} f g = extensionality lemma
     where
@@ -346,13 +346,13 @@ module MSS (
     ≡⟨ cong (_⊗ x) (sym (IsMonoid.identityʳ p x₁)) ⟩
       (x₁ ⊕ e-⊕) ⊗ x
     ∎
-  reduce-R-Dist {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist x x₁ (x₂ ∷ xs) =
+  reduce-R-Dist {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist x x₁ xa@(x₂ ∷ xs) =
     begin
-      (x₁ ⊗ x) ⊕ reduce _⊕_ e-⊕ p (map (_⊗ x) (x₂ ∷ xs))
+      (x₁ ⊗ x) ⊕ reduce _⊕_ e-⊕ p (map (_⊗ x) xa)
     ≡⟨ cong ((x₁ ⊗ x) ⊕_) (reduce-R-Dist {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist x x₂ xs) ⟩
-      (x₁ ⊗ x) ⊕ (reduce _⊕_ e-⊕ p (x₂ ∷ xs) ⊗ x)
-    ≡⟨ sym (rdist x₁ (reduce _⊕_ e-⊕ p (x₂ ∷ xs)) x)  ⟩
-      (x₁ ⊕ reduce _⊕_ e-⊕ p (x₂ ∷ xs)) ⊗ x
+      (x₁ ⊗ x) ⊕ (reduce _⊕_ e-⊕ p xa ⊗ x)
+    ≡⟨ sym (rdist x₁ (reduce _⊕_ e-⊕ p xa) x)  ⟩
+      (x₁ ⊕ reduce _⊕_ e-⊕ p xa) ⊗ x
     ∎
 
   open import Data.List.Properties using (++-assoc; ++-identityˡ; ++-identityʳ; foldl-++; map-++-commute; ∷-injectiveˡ)
@@ -369,7 +369,7 @@ module MSS (
     ≡⟨ cong (_∷ z ∷ zs) (cong (x ∷_) (∷-injectiveˡ p)) ⟩
       (x ∷ x₁ ∷ xs) ∷ z ∷ zs
     ∎
-  
+
   tails′ : ∀{A : Set} → List A → List (List A)
   tails′ []       = [] ∷ []
   tails′ (x ∷ xs) = (x ∷ xs) ∷ tails′ xs
@@ -387,7 +387,7 @@ module MSS (
         ≡⟨ cong ((x ∷ xs) ∷_) (lemma xs) ⟩
           (x ∷ xs) ∷ tails′ xs
         ∎
-  
+
   tails′-last : ∀{A : Set}(xs : List A)(x : A)
     → tails′ (xs ++ [ x ]) ≡ (map (_++ [ x ]) (tails′ xs)) ++ [ [] ]
   tails′-last [] x = refl
@@ -457,55 +457,55 @@ module MSS (
         ≡⟨ cong (foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗) (sym (++-identityˡ [ x ])) ⟩
           foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ ([] ++ [ x ])
         ∎
-      next-proof (x₁ ∷ xs) x s =
+      next-proof xa@(x₁ ∷ xs) x s =
         begin
-          (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) ((x₁ ∷ xs) ++ [ x ])
+          (reduce _⊕_ e-⊕ p ∘ map (reduce _⊗_ e-⊗ q) ∘ tails) (xa ++ [ x ])
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (tails ((x₁ ∷ xs) ++ [ x ])))
-        ≡⟨ cong (reduce _⊕_ e-⊕ p) (cong (map (reduce _⊗_ e-⊗ q)) (tails-last (x₁ ∷ xs) x)) ⟩
-          reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) ((map (_++ [ x ]) (tails (x₁ ∷ xs))) ++ [ [] ]))
-        ≡⟨ cong (reduce _⊕_ e-⊕ p) (map-++-commute (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs))) ([ [] ])) ⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs)))) ++ [ reduce _⊗_ e-⊗ q [] ])
+          reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (tails (xa ++ [ x ])))
+        ≡⟨ cong (reduce _⊕_ e-⊕ p) (cong (map (reduce _⊗_ e-⊗ q)) (tails-last xa x)) ⟩
+          reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) ((map (_++ [ x ]) (tails xa)) ++ [ [] ]))
+        ≡⟨ cong (reduce _⊕_ e-⊕ p) (map-++-commute (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)) ([ [] ])) ⟩
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa))) ++ [ reduce _⊗_ e-⊗ q [] ])
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs)))) ++ [ e-⊗ ])
-        ≡⟨ reduce-commute _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs)))) ([ e-⊗ ]) ⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs))))) ⊕ reduce _⊕_ e-⊕ p [ e-⊗ ]
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa))) ++ [ e-⊗ ])
+        ≡⟨ reduce-commute _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa))) ([ e-⊗ ]) ⟩
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)))) ⊕ reduce _⊕_ e-⊕ p [ e-⊗ ]
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs))))) ⊕ (e-⊗ ⊕ e-⊕)
-        ≡⟨ cong (reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs))))) ⊕_) (IsMonoid.identityʳ p e-⊗) ⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails (x₁ ∷ xs))))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)))) ⊕ (e-⊗ ⊕ e-⊕)
+        ≡⟨ cong (reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)))) ⊕_) (IsMonoid.identityʳ p e-⊗) ⟩
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)))) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) ∘ map (_++ [ x ])) (tails (x₁ ∷ xs))) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (map-distrib (reduce _⊗_ e-⊗ q) (_++ [ x ])) (tails (x₁ ∷ xs)))) ⟩
-          reduce _⊕_ e-⊕ p (map ((reduce _⊗_ e-⊗ q) ∘ (_++ [ x ])) (tails (x₁ ∷ xs))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) ∘ map (_++ [ x ])) (tails xa)) ⊕ e-⊗
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (map-distrib (reduce _⊗_ e-⊗ q) (_++ [ x ])) (tails xa))) ⟩
+          reduce _⊕_ e-⊕ p (map ((reduce _⊗_ e-⊗ q) ∘ (_++ [ x ])) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q (ts ++ [ x ])) (tails (x₁ ∷ xs))) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong (λ ϕ → map ϕ (tails (x₁ ∷ xs))) (extensionality (λ ts → reduce-commute _⊗_ e-⊗ q ts [ x ])))) ⟩
-          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ reduce _⊗_ e-⊗ q [ x ]) (tails (x₁ ∷ xs))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q (ts ++ [ x ])) (tails xa)) ⊕ e-⊗
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong (λ ϕ → map ϕ (tails xa)) (extensionality (λ ts → reduce-commute _⊗_ e-⊗ q ts [ x ])))) ⟩
+          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ reduce _⊗_ e-⊗ q [ x ]) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ (x ⊗ e-⊗)) (tails (x₁ ∷ xs))) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong (λ ϕ → map ϕ (tails (x₁ ∷ xs))) (extensionality (λ ts → cong (reduce _⊗_ e-⊗ q ts ⊗_) (IsMonoid.identityʳ q x))))) ⟩
-          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ x) (tails (x₁ ∷ xs))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ (x ⊗ e-⊗)) (tails xa)) ⊕ e-⊗
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong (λ ϕ → map ϕ (tails xa)) (extensionality (λ ts → cong (reduce _⊗_ e-⊗ q ts ⊗_) (IsMonoid.identityʳ q x))))) ⟩
+          reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ x) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map ((_⊗ x) ∘ (reduce _⊗_ e-⊗ q)) (tails (x₁ ∷ xs))) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (sym (map-distrib (_⊗ x) (reduce _⊗_ e-⊗ q))) (tails (x₁ ∷ xs)))) ⟩
-          reduce _⊕_ e-⊕ p ((map (_⊗ x) ∘ map (reduce _⊗_ e-⊗ q)) (tails (x₁ ∷ xs))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map ((_⊗ x) ∘ (reduce _⊗_ e-⊗ q)) (tails xa)) ⊕ e-⊗
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (sym (map-distrib (_⊗ x) (reduce _⊗_ e-⊗ q))) (tails xa))) ⟩
+          reduce _⊕_ e-⊕ p ((map (_⊗ x) ∘ map (reduce _⊗_ e-⊗ q)) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map (_⊗ x) (map (reduce _⊗_ e-⊗ q) (tails (x₁ ∷ xs)))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map (_⊗ x) (map (reduce _⊗_ e-⊗ q) (tails xa))) ⊕ e-⊗
         ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong (map (_⊗ x)) (cong (map (reduce _⊗_ e-⊗ q)) (tails-first x₁ xs)))) ⟩
-          reduce _⊕_ e-⊕ p (map (_⊗ x) (map (reduce _⊗_ e-⊗ q) ((x₁ ∷ xs) ∷ tails (xs)))) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map (_⊗ x) (map (reduce _⊗_ e-⊗ q) (xa ∷ tails (xs)))) ⊕ e-⊗
         ≡⟨⟩
-          reduce _⊕_ e-⊕ p (map (_⊗ x) (reduce _⊗_ e-⊗ q (x₁ ∷ xs) ∷ map (reduce _⊗_ e-⊗ q) (tails (xs)))) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (reduce-R-Dist {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist x (reduce _⊗_ e-⊗ q (x₁ ∷ xs)) (map (reduce _⊗_ e-⊗ q) (tails (xs)))) ⟩
-          (reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) ((x₁ ∷ xs) ∷ tails (xs))) ⊗ x) ⊕ e-⊗
+          reduce _⊕_ e-⊕ p (map (_⊗ x) (reduce _⊗_ e-⊗ q xa ∷ map (reduce _⊗_ e-⊗ q) (tails (xs)))) ⊕ e-⊗
+        ≡⟨ cong (_⊕ e-⊗) (reduce-R-Dist {A} _⊕_ e-⊕ _⊗_ e-⊗ p q rdist x (reduce _⊗_ e-⊗ q xa) (map (reduce _⊗_ e-⊗ q) (tails (xs)))) ⟩
+          (reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (xa ∷ tails (xs))) ⊗ x) ⊕ e-⊗
         ≡⟨ cong (_⊕ e-⊗) (cong (_⊗ x) (cong (reduce _⊕_ e-⊕ p) (cong (map (reduce _⊗_ e-⊗ q)) (sym (tails-first x₁ xs))))) ⟩
-          (reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (tails (x₁ ∷ xs))) ⊗ x) ⊕ e-⊗
+          (reduce _⊕_ e-⊕ p (map (reduce _⊗_ e-⊗ q) (tails xa)) ⊗ x) ⊕ e-⊗
         ≡⟨ cong (λ t → (t ⊗ x) ⊕ e-⊗) s ⟩
-          ((foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ (x₁ ∷ xs)) ⊗ x) ⊕ e-⊗
+          ((foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ xa) ⊗ x) ⊕ e-⊗
         ≡⟨⟩
-          foldl (λ a b → (a ⊗ b) ⊕ e-⊗) (foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ (x₁ ∷ xs)) [ x ]
-        ≡⟨ sym (foldl-++ (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ (x₁ ∷ xs) [ x ]) ⟩
-          (foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗) ((x₁ ∷ xs) ++ [ x ])
+          foldl (λ a b → (a ⊗ b) ⊕ e-⊗) (foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ xa) [ x ]
+        ≡⟨ sym (foldl-++ (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗ xa [ x ]) ⟩
+          (foldl (λ a b → (a ⊗ b) ⊕ e-⊗) e-⊗) (xa ++ [ x ])
         ∎
 
       ++-transform : (xs : List A)(y : A)(ys : List A)
@@ -603,7 +603,7 @@ module MSS (
     ≡⟨⟩
       (suc a + c) ⊔ (suc b + c)
     ∎
-  
+
   segs′ : ∀ {A : Set} → List A → List (List A)
   segs′ = flatten ∘ map tails ∘ inits
   segs-is-segs′ : ∀ {A : Set} → segs {A} ≡ segs′ {A}
@@ -809,7 +809,7 @@ module BMF2-1 where
     ≡⟨⟩
       [ 0 ]
     ∎
-  
+
   せな法則三 : ∀ {_⊗_} (m : IsSemigroup _⊗_)
     → IsHomomorphism NList-++′-is-semigroup m (init {ℕ})
     → [] ⊗ [] ≡ [ 1 ]
