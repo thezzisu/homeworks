@@ -729,7 +729,7 @@ module BMF2-1 where
 
   -- 1. prove 'split' is a homomorphism
   split : ∀ {A : Set} → NList A → List A × A
-  split = reduce (λ (xs , x) (ys , y) → (xs ++ [ x ] ++ ys , y)) ∘ map λ x → ([] , x)
+  split = reduce (λ (xs , x) (ys , y) → (xs ++ [ x ] ++ ys , y)) ∘ map ([] ,_)
 
   -- bonus: you may also want to prove the following theorems:
   --   _⊗_ : ∀ {A : Set} → List A × A → List A × A → List A × A
