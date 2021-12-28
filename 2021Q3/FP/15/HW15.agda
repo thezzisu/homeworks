@@ -75,41 +75,22 @@ module problem-3 (
   reverse (x ∷ xs) = reverse xs ++ (x ∷ [])
 
   -- hint: you might want to introduce an extra lemma to prove this.
-  reverse-involutive : ∀ {A : Set} → reverse {A} ∘ reverse {A} ≡ id
-  reverse-involutive {A} = extensionality lemma
-    where
-      reverse-tail : (x : A) → (xs : List A) → reverse (xs ++ (x ∷ [])) ≡ x ∷ reverse xs
-      reverse-tail x [] = refl
-      reverse-tail x (x₁ ∷ xs) =
-        begin
-          reverse ((x₁ ∷ xs) ++ (x ∷ []))
-        ≡⟨⟩
-          reverse (x₁ ∷ (xs ++ (x ∷ [])))
-        ≡⟨⟩
-          (reverse (xs ++ (x ∷ []))) ++ (x₁ ∷ [])
-        ≡⟨ cong (_++ (x₁ ∷ [])) (reverse-tail x xs) ⟩
-          (x ∷ reverse (xs)) ++ (x₁ ∷ [])
-        ≡⟨⟩
-          x ∷ (reverse (xs) ++ (x₁ ∷ []))
-        ≡⟨⟩
-          x ∷ reverse (x₁ ∷ xs)
-        ∎
-      lemma : (xs : List A) → (reverse ∘ reverse) xs ≡ id xs
-      lemma [] = refl
-      lemma (x ∷ xs) =
-        begin
-          (reverse ∘ reverse) (x ∷ xs)
-        ≡⟨⟩
-          reverse (reverse (x ∷ xs))
-        ≡⟨⟩
-          reverse ((reverse xs) ++ (x ∷ []))
-        ≡⟨ reverse-tail x (reverse xs) ⟩
-          x ∷ reverse (reverse xs)
-        ≡⟨⟩
-          x ∷ ((reverse ∘ reverse) xs)
-        ≡⟨ cong (x ∷_) (lemma xs) ⟩
-          x ∷ xs
-        ∎
+reverse-involutive : ∀ {A : Set} → reverse {A} ∘ reverse {A} ≡ id
+reverse-involutive {A} = extensionality lemma
+  where
+    reverse-tail : (x : A) → (xs : List A) → reverse (xs ++ (x ∷ [])) ≡ x ∷ reverse xs
+    reverse-tail x [] = refl
+    reverse-tail x (x₁ ∷ xs) = cong (_++ (x₁ ∷ [])) (reverse-tail x xs)
+    lemma : (xs : List A) → (reverse ∘ reverse) xs ≡ id xs
+    lemma [] = refl
+    lemma (x ∷ xs) =
+      begin
+        reverse ((reverse xs) ++ (x ∷ []))
+      ≡⟨ reverse-tail x (reverse xs) ⟩
+        x ∷ ((reverse ∘ reverse) xs)
+      ≡⟨ cong (x ∷_) (lemma xs) ⟩
+        x ∷ xs
+      ∎
 
   -- bonus: fast-reverse-involutive
   -- this is only for practice, not part of the homework this week
@@ -127,12 +108,12 @@ module problem-3 (
   fast-reverse≡reverse : ∀ {A : Set} → fast-reverse {A} ≡ reverse {A}
   fast-reverse≡reverse {A} = extensionality lemma
     where
-      actual-helper : (xs ys : List A) → helper xs ys ≡ (reverse ys) ++ xs
+      actual-helper : (xs ys : List A) → helper {A} xs ys ≡ (reverse ys) ++ xs
       actual-helper xs [] = refl
       actual-helper xs (y ∷ ys) = begin
-          helper xs (y ∷ ys)
+          helper {A} xs (y ∷ ys)
         ≡⟨⟩
-          helper (y ∷ xs) ys
+          helper {A} (y ∷ xs) ys
         ≡⟨ actual-helper (y ∷ xs) ys ⟩
           (reverse ys) ++ (y ∷ xs)
         ≡⟨ cong ((reverse ys) ++_) refl ⟩
@@ -147,7 +128,7 @@ module problem-3 (
       lemma xs = begin
           fast-reverse xs
         ≡⟨⟩
-          helper [] xs
+          helper {A} [] xs
         ≡⟨ actual-helper [] xs ⟩
           (reverse xs) ++ []
         ≡⟨ ++-identityʳ (reverse xs) ⟩

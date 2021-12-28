@@ -135,103 +135,53 @@ module MSS (
   flatten : ∀ {A : Set} → List (List A) → List A
   flatten = reduce _++_ [] List-++-is-monoid
 
-  map-flatten : ∀ {A B : Set} → (f : A → B) → (xs ys : List A) → map f (xs ++ ys) ≡ map f xs ++ map f ys
-  map-flatten f [] ys = refl
-  map-flatten f (x ∷ xs) ys =
-    begin
-      map f ((x ∷ xs) ++ ys)
-    ≡⟨⟩
-      map f (x ∷ (xs ++ ys))
-    ≡⟨⟩
-      f x ∷ map f (xs ++ ys)
-    ≡⟨ cong (f x ∷_) (map-flatten f xs ys) ⟩
-      f x ∷ (map f xs ++ map f ys)
-    ∎
+  map-distrib : ∀ {A B : Set} (f : A → B)(xs ys : List A)
+    → map f (xs ++ ys) ≡ map f xs ++ map f ys
+  map-distrib f [] ys = refl
+  map-distrib f (x ∷ xs) ys = cong (f x ∷_) (map-distrib f xs ys)
 
-  map-distrib : ∀{A B C : Set} (f : B → C) (g : A → B) → map f ∘ map g ≡ map (f ∘ g)
-  map-distrib {A} f g = extensionality lemma
+  map-compose : ∀{A B C : Set} (f : B → C)(g : A → B)
+    → map f ∘ map g ≡ map (f ∘ g)
+  map-compose {A} f g = extensionality lemma
     where
       lemma : (xs : List A) → (map f ∘ map g) xs ≡ map (f ∘ g) xs
       lemma [] = refl
-      lemma (x ∷ xs) =
-        begin
-          (map f ∘ map g) (x ∷ xs)
-        ≡⟨⟩
-          map f (map g (x ∷ xs))
-        ≡⟨⟩
-          map f (g x ∷ map g xs)
-        ≡⟨⟩
-          f (g x) ∷ map f (map g xs)
-        ≡⟨ cong (f (g x) ∷_) (lemma xs) ⟩
-          f (g x) ∷ map (f ∘ g) xs
-        ≡⟨⟩
-          map (f ∘ g) (x ∷ xs)
-        ∎
+      lemma (x ∷ xs) = cong (f (g x) ∷_) (lemma xs)
 
-  map-promotion : ∀{A B : Set} (f : A → B) → map f ∘ flatten ≡ flatten ∘ map (map f)
+  map-promotion : ∀{A B : Set} (f : A → B)
+    → map f ∘ flatten ≡ flatten ∘ map (map f)
   map-promotion {A} {B} f = extensionality lemma
     where
-      lemma : (xs : List (List A)) → (map f ∘ flatten) xs ≡ (flatten ∘ map (map f)) xs
+      lemma : (xss : List (List A)) → (map f ∘ flatten) xss ≡ (flatten ∘ map (map f)) xss
       lemma [] = refl
-      lemma (xs ∷ xs₁) =
-        begin
-          (map f ∘ flatten) (xs ∷ xs₁)
-        ≡⟨⟩
-          map f (flatten (xs ∷ xs₁))
-        ≡⟨⟩
-          map f (xs ++ flatten xs₁)
-        ≡⟨ map-flatten f xs (flatten xs₁) ⟩
-          map f xs ++ map f (flatten xs₁)
-        ≡⟨ cong (map f xs ++_) (lemma xs₁) ⟩
-          map f xs ++ flatten (map (map f) xs₁)
-        ≡⟨⟩
-          flatten (map (map f) (xs ∷ xs₁))
-        ≡⟨⟩
-          (flatten ∘ map (map f)) (xs ∷ xs₁)
-        ∎
+      lemma (xs ∷ xss) = trans (map-distrib f xs (flatten xss)) (cong (map f xs ++_) (lemma xss))
 
-  reduce-commute : ∀{A : Set} (_⊕_ : A → A → A)(e : A)(p : IsMonoid e _⊕_)(xs ys : List A) → reduce _⊕_ e p (xs ++ ys) ≡ reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys
-  reduce-commute _⊕_ e p [] ys =
-    begin
-      reduce _⊕_ e p ([] ++ ys)
-    ≡⟨⟩
-      reduce _⊕_ e p ys
-    ≡⟨ sym (IsMonoid.identityˡ p (reduce _⊕_ e p ys)) ⟩
-      e ⊕ reduce _⊕_ e p ys
-    ∎
+  reduce-commute : ∀{A : Set} (_⊕_ : A → A → A)(e : A)(p : IsMonoid e _⊕_)(xs ys : List A)
+    → reduce _⊕_ e p (xs ++ ys) ≡ reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys
+  reduce-commute _⊕_ e p [] ys = sym (IsMonoid.identityˡ p (reduce _⊕_ e p ys))
   reduce-commute _⊕_ e p (x ∷ xs) ys =
     begin
-      reduce _⊕_ e p (x ∷ xs ++ ys)
-    ≡⟨⟩
       x ⊕ reduce _⊕_ e p (xs ++ ys)
     ≡⟨ cong (x ⊕_) (reduce-commute _⊕_ e p xs ys) ⟩
       x ⊕ (reduce _⊕_ e p xs ⊕ reduce _⊕_ e p ys)
     ≡⟨ sym (IsSemigroup.assoc (IsMonoid.is-semigroup p) x (reduce _⊕_ e p xs) (reduce _⊕_ e p ys))  ⟩
-      (x ⊕ reduce _⊕_ e p xs) ⊕ reduce _⊕_ e p ys
-    ≡⟨⟩
       reduce _⊕_ e p (x ∷ xs) ⊕ reduce _⊕_ e p ys
     ∎
 
-  reduce-promotion : ∀{A : Set} (_⊕_ : A → A → A) (e : A)(p : IsMonoid e _⊕_) → reduce _⊕_ e p ∘ flatten ≡ reduce _⊕_ e p ∘ map (reduce _⊕_ e p)
+  reduce-promotion : ∀{A : Set} (_⊕_ : A → A → A)(e : A)(p : IsMonoid e _⊕_)
+    → reduce _⊕_ e p ∘ flatten ≡ reduce _⊕_ e p ∘ map (reduce _⊕_ e p)
   reduce-promotion {A} _⊕_ e p = extensionality lemma
     where
-      lemma : (xs : List (List A)) → (reduce _⊕_ e p ∘ flatten) xs ≡ (reduce _⊕_ e p ∘ map (reduce _⊕_ e p)) xs
+      lemma : (xss : List (List A))
+        → (reduce _⊕_ e p ∘ flatten) xss ≡ (reduce _⊕_ e p ∘ map (reduce _⊕_ e p)) xss
       lemma [] = refl
-      lemma (xs ∷ xs₁) =
+      lemma (xs ∷ xss) =
         begin
-          (reduce _⊕_ e p ∘ flatten) (xs ∷ xs₁)
-        ≡⟨⟩
-          reduce _⊕_ e p (flatten (xs ∷ xs₁))
-        ≡⟨⟩
-          reduce _⊕_ e p (xs ++ flatten xs₁)
-        ≡⟨ reduce-commute _⊕_ e p xs (flatten xs₁) ⟩
-          reduce _⊕_ e p xs ⊕ reduce _⊕_ e p (flatten xs₁)
-        ≡⟨ cong (reduce _⊕_ e p xs ⊕_) (lemma xs₁) ⟩
-          reduce _⊕_ e p xs ⊕ reduce _⊕_ e p (map (reduce _⊕_ e p) xs₁)
-        ≡⟨⟩
-          reduce _⊕_ e p (reduce _⊕_ e p xs ∷ map (reduce _⊕_ e p) xs₁)
-        ≡⟨⟩
-          reduce _⊕_ e p (map (reduce _⊕_ e p) (xs ∷ xs₁))
+          reduce _⊕_ e p (xs ++ flatten xss)
+        ≡⟨ reduce-commute _⊕_ e p xs (flatten xss) ⟩
+          reduce _⊕_ e p xs ⊕ reduce _⊕_ e p (flatten xss)
+        ≡⟨ cong (reduce _⊕_ e p xs ⊕_) (lemma xss) ⟩
+          reduce _⊕_ e p (map (reduce _⊕_ e p) (xs ∷ xss))
         ∎
 
   foldl-last : ∀{A : Set}(_⊕_ : A → A → A)(e : A)(xs : List A)(x : A)
@@ -476,7 +426,7 @@ module MSS (
           reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) (map (_++ [ x ]) (tails xa)))) ⊕ e-⊗
         ≡⟨⟩
           reduce _⊕_ e-⊕ p ((map (reduce _⊗_ e-⊗ q) ∘ map (_++ [ x ])) (tails xa)) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (map-distrib (reduce _⊗_ e-⊗ q) (_++ [ x ])) (tails xa))) ⟩
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (map-compose (reduce _⊗_ e-⊗ q) (_++ [ x ])) (tails xa))) ⟩
           reduce _⊕_ e-⊕ p (map ((reduce _⊗_ e-⊗ q) ∘ (_++ [ x ])) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
           reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q (ts ++ [ x ])) (tails xa)) ⊕ e-⊗
@@ -488,7 +438,7 @@ module MSS (
           reduce _⊕_ e-⊕ p (map (λ ts → reduce _⊗_ e-⊗ q ts ⊗ x) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
           reduce _⊕_ e-⊕ p (map ((_⊗ x) ∘ (reduce _⊗_ e-⊗ q)) (tails xa)) ⊕ e-⊗
-        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (sym (map-distrib (_⊗ x) (reduce _⊗_ e-⊗ q))) (tails xa))) ⟩
+        ≡⟨ cong (_⊕ e-⊗) (cong (reduce _⊕_ e-⊕ p) (cong-app (sym (map-compose (_⊗ x) (reduce _⊗_ e-⊗ q))) (tails xa))) ⟩
           reduce _⊕_ e-⊕ p ((map (_⊗ x) ∘ map (reduce _⊗_ e-⊗ q)) (tails xa)) ⊕ e-⊗
         ≡⟨⟩
           reduce _⊕_ e-⊕ p (map (_⊗ x) (map (reduce _⊗_ e-⊗ q) (tails xa))) ⊕ e-⊗
@@ -636,9 +586,9 @@ module MSS (
       maximum′ ∘ flatten ∘ map (map sum) ∘ map tails ∘ inits
     ≡⟨ cong (_∘ map (map sum) ∘ map tails ∘ inits) (reduce-promotion _⊔_ 0 ℕ-⊔-is-monoid) ⟩
       maximum′ ∘ map maximum′ ∘ map (map sum) ∘ map tails ∘ inits
-    ≡⟨ cong (maximum′ ∘_) (cong (map maximum′ ∘_) (cong (_∘  inits) (map-distrib (map sum) tails))) ⟩
+    ≡⟨ cong (maximum′ ∘_) (cong (map maximum′ ∘_) (cong (_∘  inits) (map-compose (map sum) tails))) ⟩
       maximum′ ∘ map maximum′ ∘ map (map sum ∘ tails) ∘ inits
-    ≡⟨ cong (maximum′ ∘_) (cong (_∘ inits) (map-distrib maximum′ (map sum ∘ tails))) ⟩
+    ≡⟨ cong (maximum′ ∘_) (cong (_∘ inits) (map-compose maximum′ (map sum ∘ tails))) ⟩
       maximum′ ∘ map (maximum′ ∘ map sum ∘ tails) ∘ inits
     ≡⟨ cong (_∘ map (maximum′ ∘ map sum ∘ tails) ∘ inits) (sym maximum-is-maximum′) ⟩
       maximum ∘ map (maximum′ ∘ map sum ∘ tails) ∘ inits
