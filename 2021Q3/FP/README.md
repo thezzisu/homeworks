@@ -7,4 +7,4 @@
 
 [课程中文主页](https://zhenjiang888.github.io/FP/2021/) - [WebArchive](https://web.archive.org/web/20211228063311/https://zhenjiang888.github.io/FP/2021/)
 
-[课程GitHub](https://github.com/zhenjiang888/FP)
+[课程 GitHub](https://github.com/zhenjiang888/FP)
