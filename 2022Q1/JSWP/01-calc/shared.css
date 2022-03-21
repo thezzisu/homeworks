@@ -43,3 +43,11 @@ body {
 .text-lg {
   font-size: 24px;
 }
+
+.content-wrapper {
+  align-self: stretch;
+  padding: 0 64px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
