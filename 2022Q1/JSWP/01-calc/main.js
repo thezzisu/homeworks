@@ -5,7 +5,13 @@ const SPECIAL = {
   C: () => (display.value = ""),
   "⬅": () =>
     (display.value = display.value.substring(0, display.value.length - 1)),
-  "=": () => (display.value = eval(display.value)),
+  "=": () => {
+    try {
+      display.value = eval(display.value);
+    } catch {
+      alert("Invalid Expression");
+    }
+  },
   "÷": "/",
   "×": "*",
 };
