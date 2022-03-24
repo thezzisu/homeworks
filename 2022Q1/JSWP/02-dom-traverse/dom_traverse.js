@@ -13,6 +13,12 @@ function dfs(node) {
     const li = document.createElement('li')
     li.classList.add('z-result-li')
     li.textContent = `${node.tagName}`
+    if (node.id) {
+      li.textContent += ` #${node.id}`
+    }
+    if (node.className) {
+      li.textContent += ` .${node.className.toString().split(' ').join('.')}`
+    }
     const ol = document.createElement('ol')
     ol.classList.add('z-result-ol')
     children
