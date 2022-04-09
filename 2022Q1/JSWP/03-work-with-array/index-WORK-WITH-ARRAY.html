@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Work With Array</title>
+  </head>
+
+  <body>
+    <script>
+      const dynasties = [
+        { name: '后周', begin: 951, end: 960, capital: '开封府' },
+        { name: '后梁', begin: 907, end: 923, capital: '开封府' },
+        { name: '后晋', begin: 936, end: 947, capital: '开封府' },
+        { name: '后汉', begin: 947, end: 951, capital: '开封府' },
+        { name: '南吴', begin: 902, end: 937, capital: '江都府, 金陵府' },
+        { name: '南唐', begin: 937, end: 975, capital: '江宁府' },
+        { name: '前蜀', begin: 907, end: 925, capital: '成都' },
+        { name: '后蜀', begin: 933, end: 966, capital: '成都' },
+        { name: '南汉', begin: 917, end: 971, capital: '兴王府' },
+        { name: '南楚', begin: 896, end: 951, capital: '长沙府' },
+        { name: '吴越', begin: 907, end: 978, capital: '杭州, 越州' },
+        { name: '闽国', begin: 909, end: 945, capital: '长乐府, 建州' },
+        { name: '荆南', begin: 924, end: 963, capital: '江陵府' },
+        { name: '北汉', begin: 951, end: 979, capital: '太原府' },
+        { name: '后唐', begin: 923, end: 936, capital: '河南府' }
+      ]
+
+      // 对上述中国五代十国时期的15个朝代进行3项简单统计，并将统计结果按照要求从上到下显示在web页面上。
+      /**
+       * @param {string} css
+       */
+      function injectCSS(css) {
+        var head = document.head || document.getElementsByTagName('head')[0]
+        var style = document.createElement('style')
+        style.type = 'text/css'
+        if (style.styleSheet) {
+          style.styleSheet.cssText = css
+        } else {
+          style.appendChild(document.createTextNode(css))
+        }
+        head.appendChild(style)
+      }
+
+      /**
+       * @param {string} title
+       * @param {string} name
+       */
+      function boot(title, name) {
+        const div = document.createElement('div')
+        div.innerHTML = `
+          <div class="header-wrapper">
+            <nav class="header">
+              <div>
+                <div class="text-sm">JavaScript Web Programming</div>
+                <div class="text-lg">${title}</div>
+              </div>
+              <div><a href="https://github.com/thezzisu/homeworks/tree/development/2022Q1/JSWP/${name}">GitHub</a></div>
+            </nav>
+          </div>
+          <div class="content-wrapper">
+            <main class="content">
+            </main>
+          </div>
+          <footer class="footer">
+            <div>Copyright &copy; thezzisu</div>
+          </footer>
+        `
+        injectCSS(`
+          body {
+            margin: 0;
+            height: 100%;
+          }
+
+          .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 100vh;
+          }
+
+          .header-wrapper {
+            align-self: stretch;
+            padding: 0 32px;
+            display: flex;
+            box-shadow: 0 20px 25px -5px rgb(0, 0, 0, 0.2);
+            background-color: #f0f0f0;
+          }
+
+          .header {
+            flex: 1;
+            height: 5em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .footer {
+            height: 2em;
+            align-self: stretch;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+          }
+
+          .text-sm {
+            font-size: 14px;
+          }
+
+          .text-lg {
+            font-size: 24px;
+          }
+
+          .content-wrapper {
+            align-self: stretch;
+            padding: 0 64px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+          }
+        `)
+        div.className = 'container'
+        document.body.appendChild(div)
+        return div.querySelector('main')
+      }
+
+      root = boot('Work with array', '03-work-with-array')
+
+      injectCSS(`
+      .table-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        border: #34495e solid 2px;
+        border-radius: 15px;
+        padding: 1rem;
+        margin: 1rem;
+      }
+
+      .table-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        border-bottom: #7f8c8d solid 2px;
+      }
+
+      .table-wrapper table, th, td {
+        border: #7f8c8d 0.1rem solid;
+        border-collapse: collapse;
+      }
+      `)
+
+      /**
+       * @param {string} title
+       * @param {Record<string, string>} columns
+       * @param {Array<Record<string, string>>} data
+       */
+      function display_table(title, columns, data) {
+        const wrapperDiv = document.createElement('div')
+        wrapperDiv.className = 'table-wrapper'
+
+        const titleDiv = document.createElement('div')
+        titleDiv.className = 'table-title'
+        titleDiv.innerText = title
+        wrapperDiv.appendChild(titleDiv)
+
+        const table = document.createElement('table')
+        const thead = document.createElement('thead')
+        const tbody = document.createElement('tbody')
+        const tr = document.createElement('tr')
+        const td = document.createElement('td')
+
+        for (const column of Object.values(columns)) {
+          const th = document.createElement('th')
+          th.textContent = column
+          tr.appendChild(th)
+        }
+        thead.appendChild(tr)
+        table.appendChild(thead)
+
+        for (const row of data) {
+          const tr = document.createElement('tr')
+          for (const column of Object.keys(columns)) {
+            const td = document.createElement('td')
+            td.textContent = row[column]
+            tr.appendChild(td)
+          }
+          tbody.appendChild(tr)
+        }
+        table.appendChild(tbody)
+        wrapperDiv.appendChild(table)
+        root.appendChild(wrapperDiv)
+      }
+
+      /**
+       * @template T
+       * @param {T} data
+       * @returns {T}
+       */
+      function clone(obj) {
+        return JSON.parse(JSON.stringify(obj))
+      }
+
+      // 1. 将15个朝代按照其开始时间从前向后进行排序（若开始时间相同，则按照朝代在数组中出现的顺序排序）。将排序结果显示在一个表格中。表格包含4列，每列的列表头分别是：朝代名, 开始时间, 结束时间, 都城。
+      display_table(
+        'Task 1',
+        { name: '朝代名', begin: '开始时间', end: '结束时间', capital: '都城' },
+        clone(dynasties).sort((a, b) => a.begin - b.begin)
+      )
+
+      // 2. 将15个朝代按照其生存时间从长到短进行排序（若生存时间相同，则按照朝代在数组中出现的顺序排序）。将排序结果显示在一个表格中。表格包含4列，每列的列表头分别是：朝代名, 开始时间, 结束时间, 都城。
+      display_table(
+        'Task 2',
+        { name: '朝代名', begin: '开始时间', end: '结束时间', capital: '都城' },
+        clone(dynasties).sort((a, b) => a.begin - a.end - (b.begin - b.end))
+      )
+
+      // 3. 计算五代十国这一时期的开始时间、结束时间、以及所有15个朝代生存时间的综合。将结果显示在一个三列的表格中，每列的列表头分别是：时期开始时间、时期结束时间、朝代生存时间总和。
+      display_table(
+        'Task 3',
+        { 1: '时期开始时间', 2: '时期结束时间', 3: '朝代生存时间总和' },
+        [
+          {
+            1: Math.min(...dynasties.map((d) => d.begin)),
+            2: Math.max(...dynasties.map((d) => d.end)),
+            3: dynasties.reduce((a, b) => a + b.end - b.begin, 0)
+          }
+        ]
+      )
+
+      // 作业目的：希望同学们熟悉数组上一些常用方法的使用，例如（但不限于）slice、sort、map、reduce等。这些方法定义在Array.prototype上，同学们可以在ECMAScript规范中或者在 https://developer.mozilla.org/ 上找到对这些方法的说明。
+    </script>
+  </body>
+</html>
