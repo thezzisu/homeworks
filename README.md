@@ -9,8 +9,8 @@ This repository contains the homeworks of the courses I took at Peking Universit
 
 ## Courses
 
-| Semester                   | 名称                         | Name                                        |
-| -------------------------- | ---------------------------- | ------------------------------------------- |
-| [21Q3](./2021Q3/README.md) | 动漫欣赏与实践               | Appreciation and practice of the animation  |
-| [21Q3](./2022Q1/README.md) | 计算概论 A（实验班）         | Introduction to Computing (A) (Honor Track) |
-| [22Q1](./2022Q3/README.md) | JavaScript 语言 Web 程序设计 | JavaScript Web Programming                  |
+| Semester                   | 名称                         |
+| -------------------------- | ---------------------------- |
+| [21Q3](./2021Q3/README.md) | 2021学年秋季学期              |
+| [21Q3](./2022Q1/README.md) | 2021学年春季学期              |
+| [22Q1](./2022Q3/README.md) | 2022学年秋季学期              |
