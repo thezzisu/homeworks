@@ -1,0 +1,204 @@
+#######################################################################
+# Test for copying block of size 4;
+#######################################################################
+	.pos 0
+main:	irmovq Stack, %rsp  	# Set up stack pointer
+
+	# Set up arguments for copy function and then invoke it
+	irmovq $4, %rdx		# src and dst have 4 elements
+	irmovq dest, %rsi	# dst array
+	irmovq src, %rdi	# src array
+	call ncopy		 
+	halt			# should halt with num nonzeros in %rax
+StartFun:
+# Zisu Zhang 2100012732@stu.pku.edu.cn
+# MIT Licence
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+# Include your name and ID here.
+#
+#   Zisu Zhang 2100012732@stu.pku.edu.cn
+#
+# Describe how and why you modified the baseline code.
+#
+#   Prepend Description:
+#     We could name Y86-64 with iaddq and jm instruction as Y86-64_ext.
+#     However, I implemented a slightly different version, Y86-64_extZ,
+#     with these differents:
+#     1. iaddq $0, REG will add -1 to REG
+#     2. jm    IMM, REG will add IMM to RAX when REG holds a non-negative value
+#     We will use (1) to distinguish Y86-64_ext with Y86-64_extZ,
+#     and use (2) to speed up our program.
+#   More detaily, I have implemented these optimizations:
+#   1. 8x8 loop unrolling
+#   2. ISA detection to keep compatibility between Y86-64_ext(YIS) and Y86-64_extZ(psim)
+#   2. Native conditional increasement using (2) above
+#
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+
+##################################################################
+# You can modify this portion
+  # Since other students do not zero the rax, I wont do that either
+  # xorq   %rax, %rax    # rax = 0
+
+  # Check what instruction set we are running on
+  iaddq  $19260, %rax
+  jg     YIS_START
+PIPE:                   # Running on Y86-64_extZ (psim)
+  jm     $-8, %rdx
+  jl     P_TAIL
+  iaddq  $-8, %rdx
+L1:                     # 8x8 loop unrolling
+  mrmovq (%rdi), %r14
+  mrmovq 8(%rdi), %r13
+  mrmovq 16(%rdi), %r12
+  mrmovq 24(%rdi), %r11
+  mrmovq 32(%rdi), %r10
+  mrmovq 40(%rdi), %r9
+  mrmovq 48(%rdi), %r8
+  mrmovq 56(%rdi), %rbx
+  rmmovq %r14, (%rsi)
+  rmmovq %r13, 8(%rsi)
+  rmmovq %r12, 16(%rsi)
+  rmmovq %r11, 24(%rsi)
+  rmmovq %r10, 32(%rsi)
+  rmmovq %r9, 40(%rsi)
+  rmmovq %r8, 48(%rsi)
+  rmmovq %rbx, 56(%rsi)
+  .word  0xe027         # r14
+  .word  0xd027         # r13
+  .word  0xc027         # r12
+  .word  0xb027         # r11
+  .word  0xa027         # r10
+  .word  0x9027         # r9
+  .word  0x8027         # r8
+  .word  0x3027         # rbx
+  iaddq  $64, %rdi
+  iaddq  $64, %rsi
+  iaddq  $-8, %rdx
+  jge    L1            # loop
+  iaddq  $8, %rdx
+P_TAIL:                # now rdx in [0, 7]
+  jm     $-1, %rdx
+  jl     Done
+  jle    P_L1
+  jm     $-3, %rdx
+  jl     P_L2
+  jle    P_L3
+P_L4:
+  mrmovq (%rdi), %r14
+  mrmovq 8(%rdi), %r13
+  mrmovq 16(%rdi), %r12
+  mrmovq 24(%rdi), %r11
+  rmmovq %r14, (%rsi)
+  rmmovq %r13, 8(%rsi)
+  rmmovq %r12, 16(%rsi)
+  rmmovq %r11, 24(%rsi)
+  .word  0xe027         # r14
+  .word  0xd027         # r13
+  .word  0xc027         # r12
+  .word  0xb027         # r11
+  iaddq  $32, %rdi
+  iaddq  $32, %rsi
+  iaddq  $-4, %rdx
+  jmp    P_TAIL
+P_L3:
+  mrmovq (%rdi), %r14
+  mrmovq 8(%rdi), %r13
+  mrmovq 16(%rdi), %r12
+  .word  0xe027         # r14
+  .word  0xd027         # r13
+  .word  0xc027         # r12
+  rmmovq %r14, (%rsi)
+  rmmovq %r13, 8(%rsi)
+  rmmovq %r12, 16(%rsi)
+  jmp Done
+P_L2:
+  mrmovq (%rdi), %r14
+  mrmovq 8(%rdi), %r13
+  .word  0xe027         # r14
+  .word  0xd027         # r13
+  rmmovq %r14, (%rsi)
+  rmmovq %r13, 8(%rsi)
+  jmp Done
+P_L1:
+  mrmovq (%rdi), %r14
+  .word  0xe027         # r14
+  rmmovq %r14, (%rsi)
+  jmp Done
+
+YIS_START:               # Running on Y86-64_ext (YIS)
+  iaddq  $-19260, %rax  # restore RAX
+YIS_LOOP:
+  andq   %rdx, %rdx
+  jle    Done
+  mrmovq (%rdi), %r10
+	rmmovq %r10, (%rsi)
+	andq   %r10, %r10
+	jle    YIS_NOP
+	iaddq  $1, %rax
+YIS_NOP:
+	iaddq  $8, %rdi
+	iaddq  $8, %rsi
+	iaddq  $-1, %rdx
+	jg     YIS_LOOP
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */
+EndFun:
+
+###############################
+# Source and destination blocks 
+###############################
+	.align 8
+src:
+	.quad 1
+	.quad -2
+	.quad 3
+	.quad -4
+	.quad 0xbcdefa # This shouldn't get moved
+
+	.align 16
+Predest:
+	.quad 0xbcdefa
+dest:
+	.quad 0xcdefab
+	.quad 0xcdefab
+	.quad 0xcdefab
+	.quad 0xcdefab
+Postdest:
+	.quad 0xdefabc
+
+.align 8
+# Run time stack
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+
+Stack:

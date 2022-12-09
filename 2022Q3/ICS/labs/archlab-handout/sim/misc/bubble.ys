@@ -1,0 +1,62 @@
+# Zisu Zhang 2100012732@stu.pku.edu.cn
+# MIT Licence
+
+.pos 0
+	irmovq stack, %rsp
+	call   main
+	halt
+
+.align 8
+Array:
+  .quad 0xbca
+  .quad 0xcba
+  .quad 0xacb
+  .quad 0xcab
+  .quad 0xabc
+  .quad 0xbac
+
+main:
+	irmovq Array, %rdi
+  irmovq 6, %rsi
+	call   bubble_sort
+	ret 
+
+bubble_sort:
+	rrmovq %rdi, %r14 # last in r14
+  irmovq $1, %r13
+  subq   %r13, %rsi
+  addq   %rsi, %rsi
+  addq   %rsi, %rsi
+  addq   %rsi, %rsi # (count - 1) * 8
+  addq   %rsi, %r14
+  irmovq $8, %r13
+Z1:
+  rrmovq %r14, %r8
+  subq   %rdi, %r8
+  jle    Z2
+  rrmovq %rdi, %r12   # i in r12
+Z3:
+  rrmovq %r12, %r8
+  subq   %r14, %r8   # i < last
+  jge    Z4
+  rrmovq %r12, %r11
+  addq   %r13, %r11   # i + 1 in r11
+  mrmovq (%r12), %r10 # *i
+  mrmovq (%r11), %r9  # *(i+1)
+  rrmovq %r9, %r8
+  subq   %r10, %r8
+  jge Z5
+  rmmovq %r10, (%r11)
+  rmmovq %r9, (%r12)
+Z5:
+  addq   %r13, %r12
+  jmp    Z3
+Z4:
+  subq   %r13, %r14
+  jmp    Z1
+Z2:
+  ret
+
+#stack starts here and grows to lower addresses
+	.pos 0x200
+stack:
